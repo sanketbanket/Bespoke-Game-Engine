@@ -19,38 +19,38 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="cameraClass.cpp" />
-    <ClCompile Include="EBO.cpp" />
     <ClCompile Include="glad.c" />
+    <ClCompile Include="headers\cameraClass.cpp" />
+    <ClCompile Include="headers\EBO.cpp" />
+    <ClCompile Include="headers\shaderClass.cpp" />
+    <ClCompile Include="headers\textureClass.cpp" />
+    <ClCompile Include="headers\VAO.cpp" />
+    <ClCompile Include="headers\VBO.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="shaderClass.cpp" />
     <ClCompile Include="stb.cpp" />
-    <ClCompile Include="textureClass.cpp" />
-    <ClCompile Include="VAO.cpp" />
-    <ClCompile Include="VBO.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="cameraClass.h" />
-    <ClInclude Include="EBO.h" />
-    <ClInclude Include="shaderClass.h" />
+    <ClInclude Include="headers\cameraClass.h" />
+    <ClInclude Include="headers\EBO.h" />
+    <ClInclude Include="headers\shaderClass.h" />
+    <ClInclude Include="headers\textureClass.h" />
+    <ClInclude Include="headers\VAO.h" />
+    <ClInclude Include="headers\VBO.h" />
     <ClInclude Include="stb_image.h" />
-    <ClInclude Include="textureClass.h" />
-    <ClInclude Include="VAO.h" />
-    <ClInclude Include="VBO.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="container_diffuse.png" />
-    <Image Include="container_specular.png" />
-    <Image Include="image_texture.png" />
-    <Image Include="obama.jpg" />
-    <Image Include="texture.jpg" />
+    <None Include="shaders\default.frag" />
+    <None Include="shaders\diffuse.frag" />
+    <None Include="shaders\emissive.frag" />
+    <None Include="shaders\emissive.vert" />
+    <None Include="shaders\lighting.vert" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="default.frag" />
-    <None Include="diffuse.frag" />
-    <None Include="emissive.frag" />
-    <None Include="emissive.vert" />
-    <None Include="lighting.vert" />
+    <Image Include="textures\container_diffuse.png" />
+    <Image Include="textures\container_specular.png" />
+    <Image Include="textures\image_texture.png" />
+    <Image Include="textures\obama.jpg" />
+    <Image Include="textures\texture.jpg" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

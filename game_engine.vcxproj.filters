@@ -27,83 +27,83 @@
     <ClCompile Include="glad.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="EBO.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="shaderClass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="textureClass.cpp">
+    <ClCompile Include="headers\textureClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VAO.cpp">
+    <ClCompile Include="headers\VAO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VBO.cpp">
+    <ClCompile Include="headers\VBO.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="cameraClass.cpp">
+    <ClCompile Include="headers\cameraClass.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="headers\EBO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="headers\shaderClass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="shaderClass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="textureClass.h">
+    <ClInclude Include="headers\textureClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VAO.h">
+    <ClInclude Include="headers\VAO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VBO.h">
+    <ClInclude Include="headers\VBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cameraClass.h">
+    <ClInclude Include="headers\cameraClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="EBO.h">
+    <ClInclude Include="headers\shaderClass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\EBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="container_specular.png">
-      <Filter>Resource Files\textures</Filter>
-    </Image>
-    <Image Include="image_texture.png">
-      <Filter>Resource Files\textures</Filter>
-    </Image>
-    <Image Include="obama.jpg">
-      <Filter>Resource Files\textures</Filter>
-    </Image>
-    <Image Include="texture.jpg">
-      <Filter>Resource Files\textures</Filter>
-    </Image>
-    <Image Include="container_diffuse.png">
-      <Filter>Resource Files\textures</Filter>
-    </Image>
+    <None Include="shaders\emissive.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\emissive.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\lighting.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\default.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\diffuse.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <None Include="emissive.vert">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="lighting.vert">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="default.frag">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="diffuse.frag">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
-    <None Include="emissive.frag">
-      <Filter>Resource Files\shaders</Filter>
-    </None>
+    <Image Include="textures\image_texture.png">
+      <Filter>Resource Files\textures</Filter>
+    </Image>
+    <Image Include="textures\obama.jpg">
+      <Filter>Resource Files\textures</Filter>
+    </Image>
+    <Image Include="textures\texture.jpg">
+      <Filter>Resource Files\textures</Filter>
+    </Image>
+    <Image Include="textures\container_diffuse.png">
+      <Filter>Resource Files\textures</Filter>
+    </Image>
+    <Image Include="textures\container_specular.png">
+      <Filter>Resource Files\textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

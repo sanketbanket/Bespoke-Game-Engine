@@ -2,14 +2,14 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb/stb_image.h>
-#include "shaderClass.h"
-#include "VAO.h"
-#include "VBO.h"
-#include "EBO.h"
-#include "textureClass.h"
+#include "headers/shaderClass.h"
+#include "headers/VAO.h"
+#include "headers/VBO.h"
+#include "headers/EBO.h"
+#include "headers/textureClass.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include "cameraClass.h"
+#include "headers/cameraClass.h"
 #include <vector>
 
 
@@ -102,9 +102,9 @@ int main() {
 	};
 
 
-	Shader diffuseShader("lighting.vert", "diffuse.frag"); // create shader
+	Shader diffuseShader("shaders/lighting.vert", "shaders/diffuse.frag"); // create shader
 	//Shader shaderProg2("lighting.vert", "default.frag");
-	Shader emissiveShader("emissive.vert", "emissive.frag");
+	Shader emissiveShader("shaders/emissive.vert", "shaders/emissive.frag");
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
 	glGenVertexArrays(1, &vao);
@@ -180,8 +180,8 @@ int main() {
 	GLuint modelID = glGetUniformLocation(diffuseShader.ID, "model");     //grab the model and the camera transform matrices
 	GLuint transformID = glGetUniformLocation(diffuseShader.ID, "cameraMatrix");
 
-	Texture container_tex("container_diffuse.png", 0);
-	Texture container_spectex("container_specular.png", 1);
+	Texture container_tex("textures/container_diffuse.png", 0);
+	Texture container_spectex("textures/container_specular.png", 1);
 
 	container_tex.Unbind();
 	container_spectex.Unbind();
