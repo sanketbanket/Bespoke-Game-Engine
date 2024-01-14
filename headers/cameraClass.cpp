@@ -1,22 +1,43 @@
 #include "cameraClass.h"
 
-Camera::Camera(glm::vec3 position, glm::vec3 target, float fov, float aRatio, float nearest, float furthest) {
+static glm::mat3 make_rotation_matrix(float angleRad, glm::vec3 axis) {   //returns the rotation matrix for some angle in radians about some axis
 	using namespace glm;
-	vec3 direction = position - target;
-	vec3 right = cross( vec3(0.0f, 1.0f, 0.0f), direction);    //getting the local_right vector
-	vec3 up = cross(direction, right);
+	axis = normalize(axis);
+	vec3 col1, col2, col3;
+	col1 = vec3(0.0f, axis.z, -axis.y);
+	col2 = vec3(-axis.z, 0.0f, axis.x);
+	col3 = vec3(axis.y, -axis.x, 0.0f);
+	mat3 W(col1, col2, col3);
+	return mat3(1.0f) + W * sin(angleRad) + W * W * (1 - cos(angleRad));
+
+};
+
+Camera::Camera(glm::vec3 position, glm::vec3 target, float fov, float aRatio, float nearest, float furthest) { //DO NOT GIVE ANY ELEVATION TO CAMERA IT IS YET TO BE FIXED
+	using namespace glm;
+	vec3 direction = normalize(position - target);
+	vec3 right = normalize(cross( vec3(0.0f, 1.0f, 0.0f), direction));    //getting the local_right vector
+	vec3 up = normalize(cross(direction, right));
 	view = lookAt(position, target, up);  //generate the LookAt matrix
 	projection = glm::perspective(glm::radians(fov), aRatio, nearest, furthest);
+	Orientation = -direction;
+	local_right = right;
+	local_up = up;
+	Position = position;
 
-	CurrentPosition = position;
-	Orientation = normalize(direction);
-	local_right = normalize(right);   
-	local_up = normalize(up);
+	fake_up = make_rotation_matrix(glm::angle(Orientation, vec3(Orientation.x, 0.0f, Orientation.z)), vec3(1.0f, 0.0f, 0.0f)) * vec3(0.0f, 1.0f, 0.0f);
 	
-	using namespace std;
-	cout << "THE CURRENT POSITION IS : " << CurrentPosition.x << " " << CurrentPosition.y << " " << CurrentPosition.z << std::endl;
-	cout << "THE LOCAL UP DIRECTION IS : " << local_up.x<<" " << local_up.y <<" " << local_up.z << std::endl;
-	cout << "THE LOCAL RIGHT DIRECTION IS : " << local_right.x << " " << local_right.y << " " << local_right.z << std::endl;
+	float fake_pitch = glm::degrees(glm::angle(fake_up, vec3(0.0f, 1.0f, 0.0f)));
+	
+	fake_right = normalize(cross(Orientation, fake_up));
+
+
+	std::cout << "fake_up " << fake_up.x << " " << fake_up.y << " " << fake_up.z << " " << std::endl;
+	std::cout << "fake_pitch " << fake_pitch << std::endl;
+
+	std::cout << "pitch_angle is " << glm::degrees(glm::angle(Orientation, vec3(Orientation.x, 0.0f, Orientation.z))) << std::endl;
+
+	std::cout <<"local_up " << local_up.x << " " << local_up.y << " " << local_up.z << " " << std::endl;
+	std::cout <<"local_right " << local_right.x << " " << local_right.y << " " << local_right.z << " " << std::endl;
 	
 
 }
@@ -29,7 +50,7 @@ glm::mat4 Camera::GetTransformMatrix(){
 
 
 void Camera::ghetto_Mouse_Callback(GLFWwindow* window) { // ghetto cuz using right_mouse to enable mouse
-	
+	using namespace glm;
 	//std::cout << "PREVIOUS MOUSE X AND Y : " << xposMouse << " " << yposMouse << std::endl;
 	
 	float sensitivity = 0.05;
@@ -39,17 +60,23 @@ void Camera::ghetto_Mouse_Callback(GLFWwindow* window) { // ghetto cuz using rig
 	float xoffset = (new_xpos - xposMouse) * sensitivity;
 	float yoffset = (new_ypos - yposMouse) * sensitivity;
 
+	Orientation = make_rotation_matrix(radians(-xoffset), vec3(0.0f, 1.0f, 0.0f))  * Orientation;
+	Orientation = make_rotation_matrix(radians(-yoffset), local_right) * Orientation;
+
+	fake_up = make_rotation_matrix(radians(-yoffset), vec3(-1.0f, 0.0f, 0.0f)) * fake_up;
+	fake_right = normalize(cross(vec3(0.0f, 0.0f, 1.0f), fake_up));
+
+	local_right = normalize(cross(Orientation, vec3(0.0f, 1.0f, 0.0f)));
+	local_up = normalize(cross(local_right, Orientation));
 	
+
+	std::cout << "DIRECTION : " << Orientation.x << " " << Orientation.y << " " << Orientation.z << std::endl;
+	std::cout << "CAMERA RIGHT : " << local_right.x << "\\" << local_right.y << "\\" << local_right.z << std::endl;
 	
-	glm::mat4 pitch = glm::rotate(glm::mat4(1.0f), glm::radians(-yoffset), local_right);
-	view = pitch * view;
 
-	glm::mat4 yaw = glm::rotate(glm::mat4(1.0f), glm::radians(xoffset), local_up);
-	view = yaw * view;
-
-
-
-
+	view = glm::rotate(glm::mat4(1.0f), radians(yoffset), vec3(1.0f, 0.0f, 0.0f)) * view;
+	view = glm::rotate(glm::mat4(1.0f), radians(xoffset), fake_up) * view;
+	//view = glm::rotate(glm::mat4(1.0f), radians(xoffset), vec3(0.0f, 1.0f, 0.0f)) * view;
 	xposMouse = new_xpos;
 	yposMouse = new_ypos;
 		
@@ -61,115 +88,48 @@ void Camera::ghetto_Mouse_Callback(GLFWwindow* window) { // ghetto cuz using rig
 }
 
 
+bool first = true;
+
+
 void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool debug) {     //all the transformations will move the world itself inverse to the camera; 
-	//hence all the directions are reversed
 	using namespace glm;
-	vec3 forward = cross(local_up, local_right);
-	bool useMouse = false;
-
-	/*
+	vec3 front(0.0f, 0.0f, -1.0f);
 	
-	if (glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS) {    //enable mouse
-		useMouse = true;
-		if (debug) { std::cout << "Mouse Active \n"; }
-	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS) {     //disable mouse
-		useMouse = false;
-		if (debug) { std::cout << "Mouse Inactive\n"; }
-
-	}
-	*/
-
-	/*
-	if (useMouse) {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-		glfwSetCursorPosCallback(window, Mouse_Callback);       //glfw won't accept callback function :(
-
-	}
-	*/
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	if (first) { glfwGetCursorPos(window, &xposMouse, &yposMouse); first = false; }
+	
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {ghetto_Mouse_Callback(window);}
+	
 
-	if (!take_first_mouse_location) {
-		//std::cout << "now using mouse \n";
-		
-		
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS) {
+	//glfwSetCursorPosCallback(window, mouseCallback);
 
-
-			//glfwGetCursorPos(window, &xposMouse, &yposMouse);
-			ghetto_Mouse_Callback(window);
-		}
-
-		
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+		view = translate(mat4(1.0f), -fake_up * velocity) * view;
+		Position += velocity * vec3(0.0f, 1.0f, 0.0f);
 	}
-	else {
-		take_first_mouse_location = false;
-		glfwGetCursorPos(window, &xposMouse, &yposMouse);
-
+	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+		view = translate(mat4(1.0f), fake_up * velocity) * view;
+		Position += velocity * vec3(0.0f, -1.0f, 0.0f);
 	}
-
-	//camera translations henceforth
-
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {    //camera forward
-		if (debug) {
-			std::cout << "KEY S is pressed!" << std::endl;
-			std::cout << "X , Y , Z " << CurrentPosition.x << " " << CurrentPosition.y << " " << CurrentPosition.z << std::endl;
-		}
-		if (Orientation.x == 0 && Orientation.y == 0) {
-			view = translate(mat4(1.0f), -forward * velocity) * view;
-		}
-		CurrentPosition += velocity * -forward;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+		view = translate(mat4(1.0f), -fake_right * velocity) * view;
+		Position += -velocity * local_right;
+	}
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+		view = translate(mat4(1.0f), fake_right * velocity) * view;
+		Position += velocity * local_right;
+	}
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+		view = translate(mat4(1.0f), -front * velocity) * view;
+		Position += velocity * normalize(Orientation);
+	}
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+		view = translate(mat4(1.0f), front * velocity) * view;
+		Position += -velocity * normalize(Orientation);
+	}
+	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
+		std::cout << "CAMERA POSITION : " << Position.x << '\\' << Position.y << '\\' << Position.z << std::endl;
 	}
 	
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {     //camera left
-		if (debug) {
-			std::cout << "KEY D is pressed!" << std::endl;
-			std::cout << "X , Y , Z " << CurrentPosition.x << " " << CurrentPosition.y << " " << CurrentPosition.z << std::endl;
-		}
-
-		if (Orientation.x == 0 && Orientation.y == 0) {
-			view = translate(mat4(1.0f), local_right * velocity) * view;
-		}
-		CurrentPosition += velocity * local_right;
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {    //camera backward
-		if (debug) {
-			std::cout << "KEY W is pressed!" << std::endl;
-			std::cout << "X , Y , Z " << CurrentPosition.x << " " << CurrentPosition.y << " " << CurrentPosition.z << std::endl;
-		}
-		if (Orientation.x == 0 && Orientation.y == 0) {
-			view = translate(mat4(1.0f), forward * velocity) * view;
-		}
-		CurrentPosition += velocity * forward;
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {    //camera right
-		if (debug) {
-			std::cout << "KEY A is pressed!" << std::endl;
-			std::cout << "X , Y , Z " << CurrentPosition.x << " " << CurrentPosition.y << " " << CurrentPosition.z << std::endl;
-		}
-		if (Orientation.x == 0 && Orientation.y == 0) {
-			view = translate(mat4(1.0f), -local_right * velocity) * view;
-		}
-		CurrentPosition += velocity * -local_right;
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {    //camera up
-		if (debug) {
-			std::cout << "KEY D is pressed!" << std::endl;
-			std::cout << "X , Y , Z " << CurrentPosition.x << " " << CurrentPosition.y << " " << CurrentPosition.z << std::endl;
-		}
-		if (Orientation.x == 0 && Orientation.y == 0) {
-			view = translate(mat4(1.0f), -local_up * velocity) * view;
-		}
-		CurrentPosition += velocity * local_up;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {    //camera down
-		if (debug) {
-			std::cout << "KEY D is pressed!" << std::endl;
-			std::cout << "X , Y , Z " << CurrentPosition.x << " " << CurrentPosition.y << " " << CurrentPosition.z << std::endl;
-		}
-		if (Orientation.x == 0 && Orientation.y == 0) {
-			view = translate(mat4(1.0f), local_up * velocity) * view;
-		}
-		CurrentPosition += velocity * -local_up;
-	}
+	
 }
