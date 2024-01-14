@@ -105,5 +105,8 @@
     <Image Include="textures\container_specular.png">
       <Filter>Resource Files\textures</Filter>
     </Image>
+    <Image Include="textures\floor_specular.jpg">
+      <Filter>Resource Files\textures</Filter>
+    </Image>
   </ItemGroup>
 </Project>

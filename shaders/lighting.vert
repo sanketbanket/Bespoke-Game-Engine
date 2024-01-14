@@ -20,7 +20,7 @@ uniform mat4 cameraMatrix;
 
 void main()
 {
-   gl_Position = cameraMatrix * model * vec4(aPos * scale , 1.0);
+   gl_Position = cameraMatrix * model * vec4(aPos , 1.0);
    FragPos = vec3(model * vec4(aPos, 1.0));
    normal = mat3(transpose(inverse(model))) * aNormal;
    texCoords = aTex;

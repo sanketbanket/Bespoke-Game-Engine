@@ -48,6 +48,7 @@
   <ItemGroup>
     <Image Include="textures\container_diffuse.png" />
     <Image Include="textures\container_specular.png" />
+    <Image Include="textures\floor_specular.jpg" />
     <Image Include="textures\image_texture.png" />
     <Image Include="textures\obama.jpg" />
     <Image Include="textures\texture.jpg" />

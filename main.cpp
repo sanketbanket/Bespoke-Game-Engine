@@ -14,6 +14,7 @@
 
 
 
+
 int main() {
 	const int width = 1000;
 	const int height = 1000;
@@ -101,6 +102,12 @@ int main() {
 		0,3,2
 	};
 
+	float floor[] = {
+		0.5f, 0.0, 0.5f,  0.0f, 1.0f, 0.0f,	0.0f, 0.0f,
+		-0.5f, 0.0, 0.5f, 0.0f, 1.0f, 0.0f,	1.0f, 0.0f,
+		-0.5f, 0.0, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
+		0.5f, 0.0, -0.5f, 0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
+	};
 
 	Shader diffuseShader("shaders/lighting.vert", "shaders/diffuse.frag"); // create shader
 	//Shader shaderProg2("lighting.vert", "default.frag");
@@ -130,7 +137,7 @@ int main() {
 	
 
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -158,14 +165,41 @@ int main() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	//cube done
 
+	//floor now : 
+	GLuint floor_vao;
+	glGenVertexArrays(1, &floor_vao);
+	glBindVertexArray(floor_vao);
 
-	//glm::vec3 surface_color(63.0f / 255, 165.0f / 255, 171.0f / 255);   //surface color
+	GLuint floor_vbo;
+	glGenBuffers(1, &floor_vbo);
+	glBindBuffer(GL_ARRAY_BUFFER, floor_vbo);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(floor), floor, GL_STATIC_DRAW);
+
+	GLuint floor_ebo;
+	glGenBuffers(1, &floor_ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, floor_ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+	glEnableVertexAttribArray(2);
+
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	
+
+	//floor done
 
 	float ambience = 0.2f;  //define the ambient light strength
 	glm::vec3 ambient_light(1.0f, 1.0f, 1.0f);  //ambient light color
@@ -186,8 +220,10 @@ int main() {
 	container_tex.Unbind();
 	container_spectex.Unbind();
 
-
-	
+	Texture floor_tex("textures/floor_diffuse.jpg",0);
+	floor_tex.Unbind();
+	Texture floor_spectex("textures/floor_specular.jpg", 1);
+	floor_spectex.Unbind();
 
 
 	Camera scenecam(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, (float)(width) / height, 0.1f, 100.0f);  //creating the camera
@@ -196,7 +232,9 @@ int main() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glfwSwapBuffers(window);
+	
 
+	
 
 
 
@@ -263,7 +301,7 @@ int main() {
 
 
 		diffuseShader.Setvec3("ambience", ambient_light);
-		diffuseShader.Setvec3("cameraPos", scenecam.CurrentPosition);
+		diffuseShader.Setvec3("cameraPos", scenecam.Position);
 		diffuseShader.Setvec3("lightColor", light_color);
 		diffuseShader.Setvec3("lightpos", light_pos);
 		
@@ -272,24 +310,31 @@ int main() {
 		diffuseShader.Set1f("tmaterial.shine", 64.0f);
 		//animating the cube a bit;
 
-		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time * 20.0), glm::vec3(1.0f, 0.0f, 0.5f)));
-		scale = 1.0f;
-		diffuseShader.Set1f("scale", scale);
+		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time* 20.0), glm::vec3(1.0f, 0.0f, 0.5f)));
+		
 		glBindVertexArray(cube_vao);    //drawing the cube
 		glUniformMatrix4fv(transformID, 1, GL_FALSE, glm::value_ptr(transform));
+
 		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 
-		float time_value = glfwGetTime();
+		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f)));
+		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(0.0f, 0.0f, 2.0f)));
+		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+		//drawing the floor
+		
+		glBindVertexArray(floor_vao);
+		
+		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(model, glm::vec3(20.0f)));
+		
+		floor_tex.Bind();
+		floor_spectex.Bind();
+		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		
 		
 		
-			
-		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time_value * 20.0), glm::vec3(1.0f, 0.3f, 0.4f)) * glm::translate(model, glm::vec3(4 * sin(time_value), -4 *  sin(time_value), 4 * cos(time_value))));
-		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
-		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time_value * 20.0), glm::vec3(1.0f, 0.3f, 0.4f)) * glm::translate(model, glm::vec3(4 * cos(time_value), 0.0f, 4 * sin(time_value))));
-		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
-		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time_value * 20.0), glm::vec3(1.0f, 0.3f, 0.4f)) * glm::translate(model, glm::vec3(4 * cos(time_value) * sin(time_value))));
-		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
+		
+		
 		
 		
 
