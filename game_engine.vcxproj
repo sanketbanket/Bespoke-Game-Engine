@@ -48,10 +48,14 @@
   <ItemGroup>
     <Image Include="textures\container_diffuse.png" />
     <Image Include="textures\container_specular.png" />
+    <Image Include="textures\floor_diffuse.jpg" />
     <Image Include="textures\floor_specular.jpg" />
     <Image Include="textures\image_texture.png" />
     <Image Include="textures\obama.jpg" />
     <Image Include="textures\texture.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libraries\lib\glfw3.lib" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -118,8 +122,8 @@
     <LibraryPath>F:\dev_stuff\opengl\game_engine\libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>F:\dev_stuff\opengl\game_engine\libraries\include;$(IncludePath)</IncludePath>
-    <LibraryPath>F:\dev_stuff\opengl\game_engine\libraries\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(ProjectDir)libraries\include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(ProjectDir)libraries\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
