@@ -71,6 +71,12 @@
     <ClInclude Include="headers\EBO.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\emissive.frag">
@@ -108,5 +114,11 @@
     <Image Include="textures\floor_specular.jpg">
       <Filter>Resource Files\textures</Filter>
     </Image>
+    <Image Include="textures\floor_diffuse.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="libraries\lib\glfw3.lib" />
   </ItemGroup>
 </Project>
