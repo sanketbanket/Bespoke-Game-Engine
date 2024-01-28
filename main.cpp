@@ -7,6 +7,7 @@
 #include "headers/VBO.h"
 #include "headers/EBO.h"
 #include "headers/textureClass.h"
+#include "headers/Model.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "headers/cameraClass.h"
@@ -112,6 +113,9 @@ int main() {
 	Shader diffuseShader("shaders/lighting.vert", "shaders/diffuse.frag"); // create shader
 	//Shader shaderProg2("lighting.vert", "default.frag");
 	Shader emissiveShader("shaders/emissive.vert", "shaders/emissive.frag");
+	stbi_set_flip_vertically_on_load(true);
+	Model ourModel1("Models/bag_model/backpack.obj");
+
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
 	glGenVertexArrays(1, &vao);
@@ -283,9 +287,9 @@ int main() {
 		diffuseShader.Activate();
 
 		container_tex.Bind();
-		glUniform1i(glGetUniformLocation(diffuseShader.ID, "tmaterial.diffuse"), 0);
+		glUniform1i(glGetUniformLocation(diffuseShader.ID, "tmaterial.diffuse1"), 0);
 		container_spectex.Bind();
-		glUniform1i(glGetUniformLocation(diffuseShader.ID, "tmaterial.specular"), 1);
+		glUniform1i(glGetUniformLocation(diffuseShader.ID, "tmaterial.specular1"), 1);
 
 		diffuseShader.Setvec3("light.position", light_pos);
 		diffuseShader.Setvec3("light.diffuse", light_color);
@@ -331,7 +335,11 @@ int main() {
 		floor_spectex.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		
-		
+		model = glm::mat4(1.f);
+		model = glm::translate(model, glm::vec3(1.0f, 0.0f, 0.0f)); // translate it right
+		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		diffuseShader.Setmat4("model", model);
+		ourModel1.Draw(diffuseShader);
 		
 		
 		
