@@ -43,8 +43,8 @@ float shine;  //should be a power of two : higher the value more "shinier" the m
 
 
 struct tMaterial {
-sampler2D diffuse;
-sampler2D specular;
+sampler2D diffuse1;
+sampler2D specular1;
 float shine;
 };
 
@@ -53,7 +53,7 @@ vec3 calculate_point(tMaterial tmaterial, pointLight light){		//calculates the l
 vec3 light_direction = normalize(light.position - FragPos);
 vec3 norm = normalize(normal);
 float diff = max(0.0, dot(light_direction, norm));
-vec4 diffuse_color = texture(tmaterial.diffuse, texCoords);
+vec4 diffuse_color = texture(tmaterial.diffuse1, texCoords);
 diffuse_color.xyz = gamma_correction(diffuse_color.xyz, 1.0f/2.2);
 vec3 diffuse = light.diffuse * (diff * diffuse_color.xyz);
 
@@ -63,7 +63,7 @@ vec3 reflected = reflect(-light_direction, norm);
 vec3 viewDir = normalize(cameraPos - FragPos);
 vec3 halfway = normalize(light_direction + viewDir);
 float spec = pow(max(dot(norm, halfway), 0.0), tmaterial.shine);   //shininess
-vec4 specular_color = texture(tmaterial.specular, texCoords);
+vec4 specular_color = texture(tmaterial.specular1, texCoords);
 vec3 specular = light.specular * (spec * specular_color.xyz);
 //finishing up
 vec3 ambient = ambience * diffuse_color.xyz;
@@ -85,9 +85,9 @@ return vec3(spec * 0.5f);
 
 
 vec3 calculate_sun(tMaterial tmaterial, sunLight light){
-vec4 diffuse_color = texture(tmaterial.diffuse, texCoords);
+vec4 diffuse_color = texture(tmaterial.diffuse1, texCoords);
 diffuse_color.xyz = gamma_correction(diffuse_color.xyz, 1.0f/2.2);
-vec4 specular_color = texture(tmaterial.specular, texCoords);
+vec4 specular_color = texture(tmaterial.specular1, texCoords);
 vec3 norm = normalize(normal);
 vec3 light_direction = normalize(light.direction);
 vec3 view_direction = normalize(cameraPos - FragPos);
@@ -107,8 +107,8 @@ return ambient + diffuse + specular;
 
 vec3 calculate_cone(tMaterial tmaterial, coneLight light){
 
-vec4 specular_color = texture(tmaterial.specular, texCoords);
-vec4 diffuse_color = texture(tmaterial.diffuse, texCoords);
+vec4 specular_color = texture(tmaterial.specular1, texCoords);
+vec4 diffuse_color = texture(tmaterial.diffuse1, texCoords);
 diffuse_color.xyz = gamma_correction(diffuse_color.xyz, 1.0f/2.2);
 vec3 light_direction = normalize(light.position - FragPos);
 vec3 viewDir = normalize(cameraPos - FragPos);
@@ -157,7 +157,7 @@ point.position = vec3(0.0f, 2.0f, 2.0f);
 point.diffuse = vec3(1.0f,1.0f, 1.0f) * 0.5f;
 point.specular = vec3(1.0f,1.0f, 1.0f) * 0.5f;
 
-sun.direction = vec3(-3f, -3f, -6f);
+sun.direction = vec3(-3.0f, -3.0f, -6.0f);
 sun.diffuse = vec3( 1.0f,1.0f, 0.9f);
 sun.specular = vec3(1.0f, 1.0f, 1.0f);
 
@@ -168,7 +168,7 @@ cone.specular = vec3(0.0f, 0.0f,3.0f);
 cone.cutoff_angle = 45.0f;
 
 
-vec3 output_color = ambience * texture(tmaterial.diffuse, texCoords).xyz;
+vec3 output_color = ambience * texture(tmaterial.diffuse1, texCoords).xyz;
 
 output_color += calculate_point(tmaterial, point);
 output_color += calculate_sun(tmaterial, sun);
