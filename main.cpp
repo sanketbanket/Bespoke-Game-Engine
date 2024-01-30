@@ -12,6 +12,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "headers/cameraClass.h"
 #include <vector>
+#include "headers/light_objects.h"
 
 
 
@@ -237,10 +238,15 @@ int main() {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glfwSwapBuffers(window);
 	
-
+	//making the lights
+	PointLight point(glm::vec3(5.0f, 1.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f));
 	
-
-
+	SunLight sun(glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f));
+	vector<SunLight*> suns = {};
+	suns.push_back(&sun);
+	
+	vector<PointLight*> pointLights;
+	pointLights.push_back(&point);
 
 	//rendering loop 
 
@@ -297,6 +303,12 @@ int main() {
 		diffuseShader.Setvec3("material.diffuse", glm::vec3(1.0f, 0.5f, 0.31f));
 		diffuseShader.Setvec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
 		diffuseShader.Set1f("material.shine", 32.0f);
+		//diffuseShader.Setvec3("Points[0].position", point.Position);
+		//diffuseShader.Setvec3("Points[0].diffuse", point.Diffuse);
+		//diffuseShader.Setvec3("Points[0].specular", point.Specular);
+		//ApplyPointToShader(diffuseShader, point, 0);
+		PassPointsToShader(diffuseShader, pointLights); 
+		PassSunsToShader(diffuseShader, suns);
 
 
 		//GLuint lightID = glGetUniformLocation(diffuseShader.ID, "light_color");
@@ -337,7 +349,7 @@ int main() {
 		
 		model = glm::mat4(1.f);
 		model = glm::translate(model, glm::vec3(1.0f, 0.0f, 0.0f)); // translate it right
-		model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
+		model = glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));	// it's a bit too big for our scene, so scale it down
 		diffuseShader.Setmat4("model", model);
 		ourModel1.Draw(diffuseShader);
 		

@@ -1,5 +1,7 @@
 #version 330 core
 
+
+
 uniform vec3 ambience;
 
 in vec3 normal;		//mesh normal vector
@@ -149,6 +151,14 @@ uniform tMaterial tmaterial;
 sunLight sun;
 coneLight cone;
 
+//creating arrays for the lights
+#define MAX_LIGHTS 8
+uniform sunLight Suns[MAX_LIGHTS];
+uniform pointLight Points[MAX_LIGHTS];
+uniform coneLight Cones[MAX_LIGHTS];
+uniform int pointCount;
+uniform int sunCount;
+uniform int coneCount;
 
 
 void main(){         //NOTE : AMBIENT COLOR IS BEING ADDED OVER AND OVER WITH EACH LIGHT HENCE THAT IS SOMETHING THAT NEEDS TO BE TAKEN CARE OF. //done.
@@ -170,10 +180,19 @@ cone.cutoff_angle = 45.0f;
 
 vec3 output_color = ambience * texture(tmaterial.diffuse1, texCoords).xyz;
 
-output_color += calculate_point(tmaterial, point);
-output_color += calculate_sun(tmaterial, sun);
-output_color += calculate_cone(tmaterial, cone);
-//output_color += giveshine(point);
+for(int i = 0; i < pointCount ; i++){
+output_color += calculate_point(tmaterial, Points[i]);
+};
+for(int i = 0; i < sunCount ; i++){
+output_color += calculate_sun(tmaterial, Suns[i]);
+};
+for(int i = 0; i < coneCount ; i++){
+output_color += calculate_cone(tmaterial, Cones[i]);
+};
+
+
+output_color += calculate_sun(tmaterial, Suns[0]);
+
 
 FragColor = vec4(gamma_correction(output_color, gamma), 1.0f);
 

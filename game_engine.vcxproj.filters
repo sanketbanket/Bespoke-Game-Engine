@@ -77,6 +77,9 @@
     <ClInclude Include="headers\Model.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\light_objects.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\emissive.frag">
@@ -117,8 +120,5 @@
     <Image Include="textures\floor_diffuse.jpg">
       <Filter>Resource Files</Filter>
     </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="libraries\lib\glfw3.lib" />
   </ItemGroup>
 </Project>

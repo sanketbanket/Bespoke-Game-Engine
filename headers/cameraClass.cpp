@@ -31,13 +31,13 @@ Camera::Camera(glm::vec3 position, glm::vec3 target, float fov, float aRatio, fl
 	fake_right = normalize(cross(Orientation, fake_up));
 
 
-	std::cout << "fake_up " << fake_up.x << " " << fake_up.y << " " << fake_up.z << " " << std::endl;
-	std::cout << "fake_pitch " << fake_pitch << std::endl;
+	//std::cout << "fake_up " << fake_up.x << " " << fake_up.y << " " << fake_up.z << " " << std::endl;
+	//std::cout << "fake_pitch " << fake_pitch << std::endl;
 
-	std::cout << "pitch_angle is " << glm::degrees(glm::angle(Orientation, vec3(Orientation.x, 0.0f, Orientation.z))) << std::endl;
+	//std::cout << "pitch_angle is " << glm::degrees(glm::angle(Orientation, vec3(Orientation.x, 0.0f, Orientation.z))) << std::endl;
 
-	std::cout <<"local_up " << local_up.x << " " << local_up.y << " " << local_up.z << " " << std::endl;
-	std::cout <<"local_right " << local_right.x << " " << local_right.y << " " << local_right.z << " " << std::endl;
+	//std::cout <<"local_up " << local_up.x << " " << local_up.y << " " << local_up.z << " " << std::endl;
+	//std::cout <<"local_right " << local_right.x << " " << local_right.y << " " << local_right.z << " " << std::endl;
 	
 
 }
@@ -70,8 +70,8 @@ void Camera::ghetto_Mouse_Callback(GLFWwindow* window) { // ghetto cuz using rig
 	local_up = normalize(cross(local_right, Orientation));
 	
 
-	std::cout << "DIRECTION : " << Orientation.x << " " << Orientation.y << " " << Orientation.z << std::endl;
-	std::cout << "CAMERA RIGHT : " << local_right.x << "\\" << local_right.y << "\\" << local_right.z << std::endl;
+	//std::cout << "DIRECTION : " << Orientation.x << " " << Orientation.y << " " << Orientation.z << std::endl;
+	//std::cout << "CAMERA RIGHT : " << local_right.x << "\\" << local_right.y << "\\" << local_right.z << std::endl;
 	
 
 	view = glm::rotate(glm::mat4(1.0f), radians(yoffset), vec3(1.0f, 0.0f, 0.0f)) * view;
