@@ -11,11 +11,19 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "headers/cameraClass.h"
-#include <vector>
 #include "headers/light_objects.h"
+#include "headers/GameObj.h"
+#include <vector>
 
+char keyOnce[GLFW_KEY_LAST + 1];
+#define glfwGetKeyOnce(WINDOW, KEY)				\
+	(glfwGetKey(WINDOW, KEY) ?				\
+	 (keyOnce[KEY] ? false : (keyOnce[KEY] = true)) :	\
+	 (keyOnce[KEY] = false))
 
+int selectedGameObj = 0;
 
+void processTransformInputs(GLFWwindow* window, GameObject gameobjarray[], int SelObj);
 
 int main() {
 	const int width = 1000;
@@ -115,7 +123,12 @@ int main() {
 	//Shader shaderProg2("lighting.vert", "default.frag");
 	Shader emissiveShader("shaders/emissive.vert", "shaders/emissive.frag");
 	stbi_set_flip_vertically_on_load(true);
-	Model ourModel1("Models/bag_model/backpack.obj");
+
+	GameObject bag("Models/bag_model/backpack.obj", true);
+	GameObject cup("Models/cup/cup.obj", false);
+	GameObject skull("Models/basecharacter/brideskull.obj", false);
+
+	GameObject GameObjArray[] = { bag,cup,skull };
 
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
@@ -256,7 +269,7 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-
+		processTransformInputs(window, GameObjArray, selectedGameObj);
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -347,11 +360,11 @@ int main() {
 		floor_spectex.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		
-		model = glm::mat4(1.f);
-		model = glm::translate(model, glm::vec3(1.0f, 0.0f, 0.0f)); // translate it right
-		model = glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));	// it's a bit too big for our scene, so scale it down
-		diffuseShader.Setmat4("model", model);
-		ourModel1.Draw(diffuseShader);
+		for (int i = 0; i < sizeof(GameObjArray) / sizeof(GameObject); i++)
+		{
+			GameObjArray[i].transform(diffuseShader);
+			GameObjArray[i].draw(diffuseShader);
+		}
 		
 		
 		
@@ -376,4 +389,23 @@ int main() {
 
 
 	return 0;
+}
+
+void processTransformInputs(GLFWwindow* window, GameObject gameobjarray[], int SelObj)
+{
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[0] = gameobjarray[SelObj].tvecm[0] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[0] = gameobjarray[SelObj].tvecm[0] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].anglem = gameobjarray[SelObj].anglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].anglem = gameobjarray[SelObj].anglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem + 0.01f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem - 0.01f; }
+	if (glfwGetKeyOnce(window, GLFW_KEY_N) == GLFW_PRESS)
+	{
+		selectedGameObj++;
+		if (selectedGameObj == 3) selectedGameObj = 0;
+	}
 }
