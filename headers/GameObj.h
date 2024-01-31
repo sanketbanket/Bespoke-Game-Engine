@@ -19,8 +19,9 @@ public:
 	glm::vec3 tvecm = glm::vec3(0.0f, 0.0f, 0.0f);
 	float scalem = 1.0f;
 	glm::vec3 svecm = glm::vec3(1.0f, 1.0f, 1.0f);
-	glm::vec3 rvecm = glm::vec3(0.0f, 1.0f, 0.0f);
-	float anglem = 0.0f;
+	float xaxisanglem = 0.0f;
+	float yaxisanglem = 0.0f;
+	float zaxisanglem = 0.0f;
 	Model ourModel;
 	GameObject()
 	{
@@ -37,7 +38,9 @@ public:
 		GOmodelmat = glm::mat4(1.f);
 		GOmodelmat = glm::translate(GOmodelmat, tvecm);
 		GOmodelmat = glm::scale(GOmodelmat, glm::vec3(scalem,scalem,scalem));
-		GOmodelmat = glm::rotate(GOmodelmat, glm::radians(anglem), rvecm);
+		GOmodelmat = glm::rotate(GOmodelmat, glm::radians(xaxisanglem), glm::vec3(1.0f, 0.0f, 0.0f));
+		GOmodelmat = glm::rotate(GOmodelmat, glm::radians(yaxisanglem), glm::vec3(0.0f, 1.0f, 0.0f));
+		GOmodelmat = glm::rotate(GOmodelmat, glm::radians(zaxisanglem), glm::vec3(0.0f, 0.0f, 1.0f));
 		ourShader.Setmat4("model", GOmodelmat);
 	}
 

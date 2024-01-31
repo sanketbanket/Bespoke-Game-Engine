@@ -23,7 +23,7 @@ char keyOnce[GLFW_KEY_LAST + 1];
 
 int selectedGameObj = 0;
 
-void processTransformInputs(GLFWwindow* window, GameObject gameobjarray[], int SelObj);
+void processTransformInputs(GLFWwindow* window, int GOAsize, GameObject gameobjarray[], int SelObj);
 
 int main() {
 	const int width = 1000;
@@ -269,7 +269,7 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		processTransformInputs(window, GameObjArray, selectedGameObj);
+		processTransformInputs(window, sizeof(GameObjArray) / sizeof(GameObject), GameObjArray, selectedGameObj);
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -391,7 +391,7 @@ int main() {
 	return 0;
 }
 
-void processTransformInputs(GLFWwindow* window, GameObject gameobjarray[], int SelObj)
+void processTransformInputs(GLFWwindow* window, int GOAsize, GameObject gameobjarray[], int SelObj)
 {
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] + 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] - 0.03f; }
@@ -399,13 +399,17 @@ void processTransformInputs(GLFWwindow* window, GameObject gameobjarray[], int S
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[0] = gameobjarray[SelObj].tvecm[0] - 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] + 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] - 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].anglem = gameobjarray[SelObj].anglem + 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].anglem = gameobjarray[SelObj].anglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].xaxisanglem = gameobjarray[SelObj].xaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].xaxisanglem = gameobjarray[SelObj].xaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].yaxisanglem = gameobjarray[SelObj].yaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].yaxisanglem = gameobjarray[SelObj].yaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].zaxisanglem = gameobjarray[SelObj].zaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].zaxisanglem = gameobjarray[SelObj].zaxisanglem - 1.0f; }
 	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem + 0.01f; }
 	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem - 0.01f; }
 	if (glfwGetKeyOnce(window, GLFW_KEY_N) == GLFW_PRESS)
 	{
 		selectedGameObj++;
-		if (selectedGameObj == 3) selectedGameObj = 0;
+		if (selectedGameObj >= GOAsize) selectedGameObj = 0;
 	}
 }
