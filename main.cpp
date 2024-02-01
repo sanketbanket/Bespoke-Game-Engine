@@ -13,8 +13,31 @@
 #include "headers/cameraClass.h"
 #include <vector>
 #include "headers/light_objects.h"
+#include "picking/picking.h"
+#include "picking/technique.h"
 
 
+void PickingPhase(glm::mat4 model, glm::mat4 transform, Model ourModel, PickingTexture m_pickingTexture, PickingTechnique m_pickingEffect) {
+	m_pickingTexture.EnableWriting();
+
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	m_pickingEffect.Enable();
+
+	//for (uint i = 0; i < (int)ARRAY_SIZE_IN_ELEMENTS(m_worldPos); i++) {
+	//	worldTransform.SetPosition(m_worldPos[i]);
+	//	// Background is zero, the real objects start at 1
+	//	m_pickingEffect.SetObjectIndex(i + 1);
+	//	glm::mat4 WVP = transform*model;
+	//	m_pickingEffect.SetWVP(WVP);
+	//	pMesh->Render(&m_pickingEffect);
+	//}
+	m_pickingEffect.SetObjectIndex(1);
+	glm::mat4 WVP = transform * model;
+	m_pickingEffect.SetWVP(WVP);
+	ourModel.Draw(m_pickingEffect);
+	m_pickingTexture.DisableWriting();
+}
 
 
 int main() {
@@ -248,6 +271,14 @@ int main() {
 	vector<PointLight*> pointLights;
 	pointLights.push_back(&point);
 
+	//initialize picking
+	Shader pickingShader("shaders/picking.vert", "shaders/picking.frag");
+	PickingTexture m_pickingTexture;
+	PickingTechnique m_pickingEffect(pickingShader);
+	m_pickingEffect.Init();
+	m_pickingTexture.Init(width, height);
+	double mouse_x, mouse_y;
+
 	//rendering loop 
 
 	while (!glfwWindowShouldClose(window)) {
@@ -257,6 +288,7 @@ int main() {
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
 
+		
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -267,6 +299,16 @@ int main() {
 		scenecam.GetKeyInputs(window, 0.05f, true);
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 transform = scenecam.GetTransformMatrix();
+
+		PickingPhase(glm::scale(glm::translate(glm::mat4(1.f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(0.6f, 0.6f, 0.6f)), transform, ourModel1, m_pickingTexture, m_pickingEffect);
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
+			glfwGetCursorPos(window, &mouse_x, &mouse_y);
+			cout << mouse_x << " " << mouse_y << endl;
+			PickingTexture::PixelInfo Pixel = m_pickingTexture.ReadPixel(mouse_x,
+				height - mouse_y - 1);
+			Pixel.Print();
+		}
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		emissiveShader.Activate();
 		glm::vec3 light_translation = glm::vec3(0.0f, 2.0f, 2.0f);

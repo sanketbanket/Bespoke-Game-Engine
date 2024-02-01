@@ -19,6 +19,9 @@
     <Filter Include="Resource Files\textures">
       <UniqueIdentifier>{c65f1633-011e-493a-8c60-4c4ad2d434db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\picking">
+      <UniqueIdentifier>{991bec3b-0bfb-4db3-b897-5f692b91c2aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -47,6 +50,12 @@
     </ClCompile>
     <ClCompile Include="headers\shaderClass.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="picking\picking.cpp">
+      <Filter>Header Files\picking</Filter>
+    </ClCompile>
+    <ClCompile Include="picking\technique.cpp">
+      <Filter>Header Files\picking</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -80,6 +89,12 @@
     <ClInclude Include="headers\light_objects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="picking\picking.h">
+      <Filter>Header Files\picking</Filter>
+    </ClInclude>
+    <ClInclude Include="picking\technique.h">
+      <Filter>Header Files\picking</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\emissive.frag">
@@ -95,6 +110,12 @@
       <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="shaders\diffuse.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\picking.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\picking.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>

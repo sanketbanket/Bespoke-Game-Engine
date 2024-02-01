@@ -27,6 +27,8 @@
     <ClCompile Include="headers\VAO.cpp" />
     <ClCompile Include="headers\VBO.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="picking\picking.cpp" />
+    <ClCompile Include="picking\technique.cpp" />
     <ClCompile Include="stb.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -39,6 +41,8 @@
     <ClInclude Include="headers\textureClass.h" />
     <ClInclude Include="headers\VAO.h" />
     <ClInclude Include="headers\VBO.h" />
+    <ClInclude Include="picking\picking.h" />
+    <ClInclude Include="picking\technique.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
@@ -47,6 +51,8 @@
     <None Include="shaders\emissive.frag" />
     <None Include="shaders\emissive.vert" />
     <None Include="shaders\lighting.vert" />
+    <None Include="shaders\picking.frag" />
+    <None Include="shaders\picking.vert" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="textures\container_diffuse.png" />

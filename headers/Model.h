@@ -13,6 +13,7 @@
 
 #include "Mesh.h"
 #include "shaderClass.h"
+#include "../picking/technique.h"
 
 #include <string>
 #include <fstream>
@@ -43,6 +44,12 @@ public:
     }
 
     // draws the model, and thus all its meshes
+    void Draw(PickingTechnique technique) {
+        for (unsigned int i = 0; i < meshes.size(); i++) {
+            technique.DrawStartCB(i);
+            meshes[i].Draw();
+        }
+    }
     void Draw(Shader& shader)
     {
         for (unsigned int i = 0; i < meshes.size(); i++)
