@@ -34,6 +34,7 @@
   <ItemGroup>
     <ClInclude Include="headers\cameraClass.h" />
     <ClInclude Include="headers\EBO.h" />
+    <ClInclude Include="headers\GameObj.h" />
     <ClInclude Include="headers\light_objects.h" />
     <ClInclude Include="headers\Mesh.h" />
     <ClInclude Include="headers\Model.h" />

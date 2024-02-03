@@ -11,13 +11,19 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "headers/cameraClass.h"
-#include <vector>
 #include "headers/light_objects.h"
+#include "headers/GameObj.h"
+#include <vector>
 #include "picking/picking.h"
 #include "picking/technique.h"
 
+char keyOnce[GLFW_KEY_LAST + 1];
+#define glfwGetKeyOnce(WINDOW, KEY)				\
+	(glfwGetKey(WINDOW, KEY) ?				\
+	 (keyOnce[KEY] ? false : (keyOnce[KEY] = true)) :	\
+	 (keyOnce[KEY] = false))
 
-void PickingPhase(glm::mat4 model, glm::mat4 transform, Model ourModel, PickingTexture m_pickingTexture, PickingTechnique m_pickingEffect) {
+void PickingPhase(glm::mat4 transform, GameObject GameObjArray[], PickingTexture m_pickingTexture, PickingTechnique m_pickingEffect) {
 	m_pickingTexture.EnableWriting();
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -32,13 +38,18 @@ void PickingPhase(glm::mat4 model, glm::mat4 transform, Model ourModel, PickingT
 	//	m_pickingEffect.SetWVP(WVP);
 	//	pMesh->Render(&m_pickingEffect);
 	//}
-	m_pickingEffect.SetObjectIndex(1);
-	glm::mat4 WVP = transform * model;
-	m_pickingEffect.SetWVP(WVP);
-	ourModel.Draw(m_pickingEffect);
+	for (unsigned int i = 0; i < 3; i++) {
+		m_pickingEffect.SetObjectIndex(i);
+		glm::mat4 WVP = transform * GameObjArray[i].GOmodelmat;
+		m_pickingEffect.SetWVP(WVP);
+		GameObjArray[i].draw(m_pickingEffect);
+	}
 	m_pickingTexture.DisableWriting();
-}
 
+}
+int selectedGameObj = 0;
+
+void processTransformInputs(GLFWwindow* window, int GOAsize, GameObject gameobjarray[], int SelObj);
 
 int main() {
 	const int width = 1000;
@@ -138,8 +149,12 @@ int main() {
 	//Shader shaderProg2("lighting.vert", "default.frag");
 	Shader emissiveShader("shaders/emissive.vert", "shaders/emissive.frag");
 	stbi_set_flip_vertically_on_load(true);
-	Model ourModel1("Models/bag_model/backpack.obj");
 
+	GameObject bag("Models/bag_model/backpack.obj", true);
+	GameObject cup("Models/cup/cup.obj", false);
+	GameObject skull("Models/basecharacter/brideskull.obj", false);
+
+	GameObject GameObjArray[] = { bag,cup,skull };
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
 	glGenVertexArrays(1, &vao);
@@ -287,8 +302,8 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
+		processTransformInputs(window, sizeof(GameObjArray) / sizeof(GameObject), GameObjArray, selectedGameObj);
 
-		
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -300,8 +315,9 @@ int main() {
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 transform = scenecam.GetTransformMatrix();
 
-		PickingPhase(glm::scale(glm::translate(glm::mat4(1.f), glm::vec3(1.0f, 0.0f, 0.0f)), glm::vec3(0.6f, 0.6f, 0.6f)), transform, ourModel1, m_pickingTexture, m_pickingEffect);
+		
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
+			PickingPhase(transform, GameObjArray, m_pickingTexture, m_pickingEffect);
 			glfwGetCursorPos(window, &mouse_x, &mouse_y);
 			cout << mouse_x << " " << mouse_y << endl;
 			PickingTexture::PixelInfo Pixel = m_pickingTexture.ReadPixel(mouse_x,
@@ -389,13 +405,11 @@ int main() {
 		floor_spectex.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		
-		model = glm::mat4(1.f);
-		model = glm::translate(model, glm::vec3(1.0f, 0.0f, 0.0f)); // translate it right
-		model = glm::scale(model, glm::vec3(0.6f, 0.6f, 0.6f));	// it's a bit too big for our scene, so scale it down
-		diffuseShader.Setmat4("model", model);
-		ourModel1.Draw(diffuseShader);
-		
-		
+		for (int i = 0; i < sizeof(GameObjArray) / sizeof(GameObject); i++)
+		{
+			GameObjArray[i].transform(diffuseShader);
+			GameObjArray[i].draw(diffuseShader);
+		}
 		
 		
 		
@@ -418,4 +432,27 @@ int main() {
 
 
 	return 0;
+}
+
+void processTransformInputs(GLFWwindow* window, int GOAsize, GameObject gameobjarray[], int SelObj)
+{
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[0] = gameobjarray[SelObj].tvecm[0] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[0] = gameobjarray[SelObj].tvecm[0] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].xaxisanglem = gameobjarray[SelObj].xaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].xaxisanglem = gameobjarray[SelObj].xaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].yaxisanglem = gameobjarray[SelObj].yaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].yaxisanglem = gameobjarray[SelObj].yaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].zaxisanglem = gameobjarray[SelObj].zaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].zaxisanglem = gameobjarray[SelObj].zaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem + 0.01f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem - 0.01f; }
+	if (glfwGetKeyOnce(window, GLFW_KEY_N) == GLFW_PRESS)
+	{
+		selectedGameObj++;
+		if (selectedGameObj >= GOAsize) selectedGameObj = 0;
+	}
 }

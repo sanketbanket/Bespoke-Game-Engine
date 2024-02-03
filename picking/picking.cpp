@@ -67,6 +67,10 @@ void PickingTexture::DisableWriting()
     // Bind back the default framebuffer
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 }
+void PickingTexture::Clear() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+}
 
 
 PickingTexture::PixelInfo PickingTexture::ReadPixel(unsigned int x, unsigned int y)
@@ -91,12 +95,12 @@ PickingTexture::PixelInfo PickingTexture::ReadPixel(unsigned int x, unsigned int
         rgbaData[i * 4 + 3] = 255;            // Alpha channel (fully opaque)
     }
     int result = stbi_write_png("output.png", 1000, 1000, 4, rgbaData,1000*4);
-    for (int i = 0;i < 1000000;++i) {
-        int index = i * 3;  // Each pixel has 4 components (RGBA)
-        printf("Pixel %d: R=%u, G=%u, B=%u\n", i,
-            pixels[index], pixels[index + 1], pixels[index + 2]);
+    //for (int i = 0;i < 1000000;++i) {
+    //    int index = i * 3;  // Each pixel has 4 components (RGBA)
+    //    printf("Pixel %d: R=%u, G=%u, B=%u\n", i,
+    //        pixels[index], pixels[index + 1], pixels[index + 2]);
 
-    }
+    //}
 
     glReadBuffer(GL_NONE);
 

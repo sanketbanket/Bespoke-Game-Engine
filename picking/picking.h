@@ -17,6 +17,8 @@ public:
 
     void DisableWriting();
 
+    void Clear();
+
     struct PixelInfo {
         unsigned int ObjectID = 0;
         unsigned int DrawID = 0;
