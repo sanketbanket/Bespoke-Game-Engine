@@ -46,10 +46,6 @@ public:
 
 	void draw(Shader ourShader) 
 	{
-		//GOmodelmat = glm::mat4(1.f);
-		//GOmodelmat = glm::translate(GOmodelmat, glm::vec3(1.0f, 0.0f, 0.0f)); // translate it right
-		//GOmodelmat = glm::scale(GOmodelmat, glm::vec3(1.0f, 1.0f, 1.0f));	// it's a bit too big for our scene, so scale it down
-		//ourShader.setMat4("model", GOmodelmat);
 		ourModel.Draw(ourShader);
 	}
 };

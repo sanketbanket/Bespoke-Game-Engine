@@ -23,7 +23,7 @@ char keyOnce[GLFW_KEY_LAST + 1];
 
 int selectedGameObj = 0;
 
-void processTransformInputs(GLFWwindow* window, int GOAsize, GameObject gameobjarray[], int SelObj);
+void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject>& gameobjarray, int SelObj);
 
 int main() {
 	const int width = 1000;
@@ -125,10 +125,12 @@ int main() {
 	stbi_set_flip_vertically_on_load(true);
 
 	GameObject bag("Models/bag_model/backpack.obj", true);
-	GameObject cup("Models/cup/cup.obj", false);
+	GameObject rock("Models/basecharacter/funnyrock.obj", false);
 	GameObject skull("Models/basecharacter/brideskull.obj", false);
 
-	GameObject GameObjArray[] = { bag,cup,skull };
+	
+
+	vector<GameObject> GameObjArray = { bag,rock,skull };
 
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
@@ -269,7 +271,9 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		processTransformInputs(window, sizeof(GameObjArray) / sizeof(GameObject), GameObjArray, selectedGameObj);
+		processTransformInputs(window, size(GameObjArray), GameObjArray, selectedGameObj);
+
+		cout << size(GameObjArray) << " ";
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -344,8 +348,8 @@ int main() {
 		glBindVertexArray(cube_vao);    //drawing the cube
 		glUniformMatrix4fv(transformID, 1, GL_FALSE, glm::value_ptr(transform));
 
+		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(4.0f, 0.0f, 0.0f)));
 		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
-
 		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(2.0f, 0.0f, 0.0f)));
 		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(0.0f, 0.0f, 2.0f)));
@@ -360,7 +364,8 @@ int main() {
 		floor_spectex.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		
-		for (int i = 0; i < sizeof(GameObjArray) / sizeof(GameObject); i++)
+
+		for (int i = 0; i < size(GameObjArray); i++)
 		{
 			GameObjArray[i].transform(diffuseShader);
 			GameObjArray[i].draw(diffuseShader);
@@ -391,7 +396,7 @@ int main() {
 	return 0;
 }
 
-void processTransformInputs(GLFWwindow* window, int GOAsize, GameObject gameobjarray[], int SelObj)
+void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject>& gameobjarray, int SelObj)
 {
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] + 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] - 0.03f; }
@@ -411,5 +416,10 @@ void processTransformInputs(GLFWwindow* window, int GOAsize, GameObject gameobja
 	{
 		selectedGameObj++;
 		if (selectedGameObj >= GOAsize) selectedGameObj = 0;
+	}
+	if (glfwGetKeyOnce(window, GLFW_KEY_Q) == GLFW_PRESS)
+	{
+		GameObject x("Models/cwire/sword.obj", false);
+		gameobjarray.push_back(x);
 	}
 }
