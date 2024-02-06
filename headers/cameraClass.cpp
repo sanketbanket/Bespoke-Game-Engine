@@ -98,8 +98,8 @@ void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool debug) {     
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	if (first) { glfwGetCursorPos(window, &xposMouse, &yposMouse); first = false; }
 	
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {ghetto_Mouse_Callback(window);}
-	
+	//if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {ghetto_Mouse_Callback(window);}
+	ghetto_Mouse_Callback(window);
 
 	//glfwSetCursorPosCallback(window, mouseCallback);
 

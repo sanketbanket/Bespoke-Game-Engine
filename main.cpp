@@ -23,19 +23,20 @@ char keyOnce[GLFW_KEY_LAST + 1];
 
 int selectedGameObj = 0;
 
-void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject>& gameobjarray, int SelObj);
+void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject*>& GameObjVec, int SelObj);
 
 int main() {
-	const int width = 1000;
-	const int height = 1000;
+	const int width = 1920;
+	const int height = 1080;
 	//creating window
 	glfwInit();
 
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	GLFWwindow* window = glfwCreateWindow(width, height, "LIGHTING TESTS", NULL, NULL);
+
+	GLFWmonitor* a = glfwGetPrimaryMonitor();
+	GLFWwindow* window = glfwCreateWindow(width, height, "LIGHTING TESTS", a, NULL);
 
 	if (window == NULL) {
 		std::cout << "FAILED TO CREATE WINDOW" << std::endl;
@@ -124,13 +125,17 @@ int main() {
 	Shader emissiveShader("shaders/emissive.vert", "shaders/emissive.frag");
 	stbi_set_flip_vertically_on_load(true);
 
-	GameObject bag("Models/bag_model/backpack.obj", true);
-	GameObject rock("Models/basecharacter/funnyrock.obj", false);
-	GameObject skull("Models/basecharacter/brideskull.obj", false);
+	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true);
+	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false);
+	GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false);
 
 	
 
-	vector<GameObject> GameObjArray = { bag,rock,skull };
+	vector<GameObject*> GameObjVec = { bag,rock,skull };
+
+	bag->tvecm = glm::vec3(3.0f,0.0f,0.0f);
+	rock->scalem = 0.5f; rock->tvecm = glm::vec3(-3.0f, 0.0f, 0.0f);
+	skull->scalem = 5.0f;
 
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
@@ -271,9 +276,7 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		processTransformInputs(window, size(GameObjArray), GameObjArray, selectedGameObj);
-
-		cout << size(GameObjArray) << " ";
+		processTransformInputs(window, size(GameObjVec), GameObjVec, selectedGameObj);
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -365,10 +368,10 @@ int main() {
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		
 
-		for (int i = 0; i < size(GameObjArray); i++)
+		for (int i = 0; i < size(GameObjVec); i++)
 		{
-			GameObjArray[i].transform(diffuseShader);
-			GameObjArray[i].draw(diffuseShader);
+			GameObjVec[i]->transform(diffuseShader);
+			GameObjVec[i]->draw(diffuseShader);
 		}
 		
 		
@@ -381,8 +384,6 @@ int main() {
 
 	}
 
-
-
 	//cube_vao.Delete();
 	//cube_vbo.Delete();
 	//cube_ebo.Delete();
@@ -390,28 +391,30 @@ int main() {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-
-
+	for (GameObject* obj : GameObjVec) {
+		delete obj;
+	}
+	GameObjVec.clear();
 
 	return 0;
 }
 
-void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject>& gameobjarray, int SelObj)
+void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject*> &GameObjVec, int SelObj)
 {
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] + 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[1] = gameobjarray[SelObj].tvecm[1] - 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[0] = gameobjarray[SelObj].tvecm[0] + 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[0] = gameobjarray[SelObj].tvecm[0] - 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] + 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) { gameobjarray[SelObj].tvecm[2] = gameobjarray[SelObj].tvecm[2] - 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].xaxisanglem = gameobjarray[SelObj].xaxisanglem + 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].xaxisanglem = gameobjarray[SelObj].xaxisanglem - 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].yaxisanglem = gameobjarray[SelObj].yaxisanglem + 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].yaxisanglem = gameobjarray[SelObj].yaxisanglem - 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].zaxisanglem = gameobjarray[SelObj].zaxisanglem + 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].zaxisanglem = gameobjarray[SelObj].zaxisanglem - 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem + 0.01f; }
-	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { gameobjarray[SelObj].scalem = gameobjarray[SelObj].scalem - 0.01f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[1] = GameObjVec[SelObj]->tvecm[1] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[1] = GameObjVec[SelObj]->tvecm[1] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[0] = GameObjVec[SelObj]->tvecm[0] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[0] = GameObjVec[SelObj]->tvecm[0] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[2] = GameObjVec[SelObj]->tvecm[2] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[2] = GameObjVec[SelObj]->tvecm[2] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->xaxisanglem = GameObjVec[SelObj]->xaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->xaxisanglem = GameObjVec[SelObj]->xaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->yaxisanglem = GameObjVec[SelObj]->yaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->yaxisanglem = GameObjVec[SelObj]->yaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->zaxisanglem = GameObjVec[SelObj]->zaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->zaxisanglem = GameObjVec[SelObj]->zaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->scalem = GameObjVec[SelObj]->scalem + 0.01f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->scalem = GameObjVec[SelObj]->scalem - 0.01f; }
 	if (glfwGetKeyOnce(window, GLFW_KEY_N) == GLFW_PRESS)
 	{
 		selectedGameObj++;
@@ -419,7 +422,7 @@ void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject>&
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		GameObject x("Models/cwire/sword.obj", false);
-		gameobjarray.push_back(x);
+		GameObject* x = new GameObject("Models/cwire/sword.obj", false);
+		GameObjVec.push_back(x);
 	}
 }
