@@ -13,6 +13,7 @@
 #include "headers/cameraClass.h"
 #include "headers/light_objects.h"
 #include "headers/GameObj.h"
+#include "headers/Scene.h"
 #include <vector>
 
 char keyOnce[GLFW_KEY_LAST + 1];
@@ -22,8 +23,9 @@ char keyOnce[GLFW_KEY_LAST + 1];
 	 (keyOnce[KEY] = false))
 
 int selectedGameObj = 0;
+int selScene = 0;
 
-void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject*>& GameObjVec, int SelObj);
+void processTransformInputs(GLFWwindow* window, int GOAsize, int SelObj, SceneManager sceneManager, int SelScene);
 
 int main() {
 	const int width = 1920;
@@ -36,7 +38,7 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	GLFWmonitor* a = glfwGetPrimaryMonitor();
-	GLFWwindow* window = glfwCreateWindow(width, height, "LIGHTING TESTS", a, NULL);
+	GLFWwindow* window = glfwCreateWindow(width, height, "LIGHTING TESTS", NULL, NULL);
 
 	if (window == NULL) {
 		std::cout << "FAILED TO CREATE WINDOW" << std::endl;
@@ -92,12 +94,13 @@ int main() {
 	 0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-	};	
+	};
+
 	GLuint cube_indices[36];
 	for (int i = 0; i < 36; i++) {
 		cube_indices[i] = i;
 	}
-	
+
 
 
 	GLfloat square[] = {
@@ -119,23 +122,47 @@ int main() {
 		-0.5f, 0.0, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f,
 		0.5f, 0.0, -0.5f, 0.0f, 1.0f, 0.0f,	1.0f, 1.0f,
 	};
+	saving_loading* sl_ins = new saving_loading();
 
 	Shader diffuseShader("shaders/lighting.vert", "shaders/diffuse.frag"); // create shader
 	//Shader shaderProg2("lighting.vert", "default.frag");
 	Shader emissiveShader("shaders/emissive.vert", "shaders/emissive.frag");
 	stbi_set_flip_vertically_on_load(true);
 
-	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true);
-	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false);
-	GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false);
+	SceneManager sceneManager;
 
-	
+	Scene scene0;
+	Scene scene1;
 
-	vector<GameObject*> GameObjVec = { bag,rock,skull };
+	//GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true);
+	//GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false);
+	//GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false);
+
+	GameObject* bag1 = new GameObject("Models/bag_model/backpack.obj", true);
+	GameObject* rock1 = new GameObject("Models/basecharacter/funnyrock.obj", false);
+	GameObject* skull1 = new GameObject("Models/basecharacter/brideskull.obj", false);
+	//scene0.addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	//scene0.addGameObject(rock, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	//scene0.addGameObject(skull, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	scene0.gameObjects = sl_ins->loading();
+
+
+
+	scene1.addGameObject(bag1, glm::vec3(2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.3f);
+	scene1.addGameObject(rock1, glm::vec3(-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	scene1.addGameObject(skull1, glm::vec3(0.0f, 0.0f, 2.0f), 0.0f, 0.0f, 0.0f, 5.0f);
+
+	sceneManager.addScene(scene0);
+	sceneManager.addScene(scene1);
+
+	/*vector<GameObject*> GameObjVec = { bag,rock,skull };
+
+	saving_loading* sl_ins = new saving_loading();
+	vector<GameObject*> ret_ve = sl_ins->loading();
 
 	bag->tvecm = glm::vec3(3.0f,0.0f,0.0f);
 	rock->scalem = 0.5f; rock->tvecm = glm::vec3(-3.0f, 0.0f, 0.0f);
-	skull->scalem = 5.0f;
+	skull->scalem = 5.0f;*/
 
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
@@ -168,7 +195,7 @@ int main() {
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	//now for the cube
-
+	
 	GLuint cube_vao;
 	glGenVertexArrays(1, &cube_vao);
 	glBindVertexArray(cube_vao);
@@ -276,7 +303,7 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		processTransformInputs(window, size(GameObjVec), GameObjVec, selectedGameObj);
+		processTransformInputs(window, size(scene1.gameObjects), selectedGameObj, sceneManager, selScene);
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -347,7 +374,7 @@ int main() {
 		//animating the cube a bit;
 
 		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time* 20.0), glm::vec3(1.0f, 0.0f, 0.5f)));
-		
+
 		glBindVertexArray(cube_vao);    //drawing the cube
 		glUniformMatrix4fv(transformID, 1, GL_FALSE, glm::value_ptr(transform));
 
@@ -367,16 +394,8 @@ int main() {
 		floor_spectex.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		
-
-		for (int i = 0; i < size(GameObjVec); i++)
-		{
-			GameObjVec[i]->transform(diffuseShader);
-			GameObjVec[i]->draw(diffuseShader);
-		}
-		
-		
-		
-		
+		sceneManager.switchToScene(selScene);
+		sceneManager.renderCurrentScene(diffuseShader);
 		
 
 		glfwSwapBuffers(window);
@@ -391,38 +410,57 @@ int main() {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-	for (GameObject* obj : GameObjVec) {
+	sl_ins->saving(scene0.gameObjects);
+
+
+
+
+	for (GameObject* obj : scene0.gameObjects) {
 		delete obj;
 	}
-	GameObjVec.clear();
+	scene0.gameObjects.clear();
+
+	for (GameObject* obj : scene1.gameObjects) {
+		delete obj;
+	}
+	scene1.gameObjects.clear();
 
 	return 0;
 }
 
-void processTransformInputs(GLFWwindow* window, int GOAsize, vector<GameObject*> &GameObjVec, int SelObj)
+void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneManager sceneManager, int SelScene)
 {
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[1] = GameObjVec[SelObj]->tvecm[1] + 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[1] = GameObjVec[SelObj]->tvecm[1] - 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[0] = GameObjVec[SelObj]->tvecm[0] + 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[0] = GameObjVec[SelObj]->tvecm[0] - 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[2] = GameObjVec[SelObj]->tvecm[2] + 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) { GameObjVec[SelObj]->tvecm[2] = GameObjVec[SelObj]->tvecm[2] - 0.03f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->xaxisanglem = GameObjVec[SelObj]->xaxisanglem + 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->xaxisanglem = GameObjVec[SelObj]->xaxisanglem - 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->yaxisanglem = GameObjVec[SelObj]->yaxisanglem + 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->yaxisanglem = GameObjVec[SelObj]->yaxisanglem - 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->zaxisanglem = GameObjVec[SelObj]->zaxisanglem + 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->zaxisanglem = GameObjVec[SelObj]->zaxisanglem - 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { GameObjVec[SelObj]->scalem = GameObjVec[SelObj]->scalem + 0.01f; }
-	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { GameObjVec[SelObj]->scalem = GameObjVec[SelObj]->scalem - 0.01f; }
+	GameObject* selectedGO = sceneManager.scenes[sceneManager.currentSceneIndex].gameObjects[SelObj];
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->tvecm[1] = selectedGO->tvecm[1] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->tvecm[1] = selectedGO->tvecm[1] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { selectedGO->tvecm[0] = selectedGO->tvecm[0] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS) { selectedGO->tvecm[0] = selectedGO->tvecm[0] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_L) == GLFW_PRESS) { selectedGO->tvecm[2] = selectedGO->tvecm[2] + 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS) { selectedGO->tvecm[2] = selectedGO->tvecm[2] - 0.03f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->xaxisanglem = selectedGO->xaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->xaxisanglem = selectedGO->xaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->yaxisanglem = selectedGO->yaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->yaxisanglem = selectedGO->yaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->zaxisanglem = selectedGO->zaxisanglem + 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->zaxisanglem = selectedGO->zaxisanglem - 1.0f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->scalem = selectedGO->scalem + 0.01f; }
+	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->scalem = selectedGO->scalem - 0.01f; }
 	if (glfwGetKeyOnce(window, GLFW_KEY_N) == GLFW_PRESS)
 	{
 		selectedGameObj++;
-		if (selectedGameObj >= GOAsize) selectedGameObj = 0;
+		if (selectedGameObj >= GOVsize) selectedGameObj = 0;
+	}
+	if (glfwGetKeyOnce(window, GLFW_KEY_Y) == GLFW_PRESS)
+	{
+		selScene = 0;
+	}
+	if (glfwGetKeyOnce(window, GLFW_KEY_U) == GLFW_PRESS)
+	{
+		selScene = 1;
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
 		GameObject* x = new GameObject("Models/cwire/sword.obj", false);
-		GameObjVec.push_back(x);
+		sceneManager.scenes[sceneManager.currentSceneIndex].gameObjects.push_back(x);
 	}
 }
