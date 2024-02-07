@@ -191,7 +191,7 @@ output_color += calculate_cone(tmaterial, Cones[i]);
 };
 
 
-output_color += calculate_sun(tmaterial, Suns[0]);
+
 
 
 FragColor = vec4(gamma_correction(output_color, gamma), 1.0f);
