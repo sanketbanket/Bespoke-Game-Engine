@@ -5,6 +5,7 @@
 #include "shaderClass.h"
 #include <string>
 #include <vector>
+#include "Model.h"
 
 class Light {
 public : 
@@ -18,22 +19,41 @@ public:
 	glm::vec3 Position = glm::vec3(0.0f);
 	glm::vec3 Diffuse = glm::vec3(0.0f);
 	glm::vec3 Specular = glm::vec3(0.0f);
+	Model display();
+
+
 	PointLight(glm::vec3 pos, glm::vec3 diff, glm::vec3 spec) {
 		Position = pos;
 		Diffuse = diff;
 		Specular = spec;
 	};
+	void Render(Shader& shader) {
+		shader.Activate();
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, Position);
+		shader.Setmat4("model", model);
+		display->Draw(shader);
+	}
 };
 class SunLight : public Light{
 public:
 	string type = "sun";
-	glm::vec3 Direction = glm::vec3(0.0f);
+	glm::vec3 Direction = glm::vec3(0.0f,-1.0f, 0.0f);
 	glm::vec3 Diffuse = glm::vec3(0.0f);
 	glm::vec3 Specular = glm::vec3(0.0f);
+	Model* display = new Model("../models/Lights/SunLight.obj");
+
 	SunLight(glm::vec3 dir, glm::vec3 diff, glm::vec3 spec) {
 		Direction = dir;
 		Diffuse = diff;
 		Specular = spec;
+	};
+	void Render(Shader& shader) {
+		shader.Activate();
+		
+
+
+		
 	};
 };
 class ConeLight : public Light{
@@ -44,6 +64,8 @@ public:
 	glm::vec3 Specular = glm::vec3(0.0f);
 	glm::vec3 Direction = glm::vec3(0.0f);
 	float Cutoff;
+	Model* display = new Model("../models/Lights/PointLight.obj");
+
 	ConeLight(glm::vec3 pos,glm::vec3 dir, glm::vec3 diff, glm::vec3 spec, float cutoffdeg) {
 		Position = pos;
 		Direction = dir;
