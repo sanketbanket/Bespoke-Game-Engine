@@ -7,6 +7,31 @@
 #include <vector>
 #include "Model.h"
 
+
+
+
+void RenderLights(Shader& shader, vector<PointLight*> points = {}, vector<SunLight*> suns = {}, vector<ConeLight*> cones = {}) {
+	if (!suns.empty()) {
+		for (int i = 0; i < suns.size(); i++) {
+			suns[i]->Render(shader);
+		}
+	}
+	if (!cones.empty()) {
+		for (int i = 0; i < cones.size(); i++) {
+			cones[i]->Render(shader);
+		}
+	}
+	if (!points.empty()) {
+		for (int i = 0; i < points.size(); i++) {
+			points[i]->Render(shader);
+		}
+	}
+}
+
+
+
+
+
 class Light {
 public : 
 	virtual ~Light() {};
@@ -96,7 +121,7 @@ public:
 		shader.Setmat4("model", model);
 		display->Draw(shader);
 	}
-}
+};
 
 
 void ApplyPointToShader(Shader& shader, PointLight *light, int index) {
