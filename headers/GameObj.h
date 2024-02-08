@@ -24,7 +24,6 @@ public:
 	float yaxisanglem = 0.0f;
 	float zaxisanglem = 0.0f;
     bool fliptextures = false;
-
 	Model ourModel;
 	GameObject()
 	{
@@ -93,61 +92,6 @@ public:
         return_pose.push_back(this->scalem);
         return_pose.push_back(this->fliptextures);
         return return_pose;
-    }
-};
-
-class saving_loading {
-
-public:
-    saving_loading() {}
-
-    void saving(std::vector<GameObject*>& inputObject) {
-        std::ofstream file;
-        file.open("myFile.txt");
-        for (int k{}; k < inputObject.size(); k++) {
-            std::string path = inputObject[k]->path;
-            std::vector<float> current_mat = inputObject[k]->get_location();
-            file << path;
-            file << "\n";
-            for (int i{}; i < 27; i++) {
-                file << current_mat[i];
-                file << " ";
-            }
-            file << "\n";
-        }
-        file.close();
-        return;
-    }
-
-    std::vector<GameObject*> loading() {
-        std::ifstream file("myFile.txt");
-        std::string line{};
-        std::vector<GameObject*> ret_vector{};
-        if (file.is_open()) {
-            while (getline(file, line)) {
-                std::string path = line;
-                std::vector<float> inputPose{};
-                getline(file, line);
-                std::istringstream iss(line);
-                float floatValue{};
-                int i{};
-                while (i < 27) {
-                    iss >> floatValue;
-                    inputPose.push_back(floatValue);
-                    i++;
-                }
-                // gameObject->specifications = arr;
-                GameObject* gameObject = new GameObject(path,inputPose[26]);
-                gameObject->set_location(inputPose);
-                ret_vector.push_back(gameObject);
-            }
-            file.close();
-        }
-        else {
-            std::cout << "file is not open"
-                << "\n";
-        }
-        return ret_vector;
     }
 };
 

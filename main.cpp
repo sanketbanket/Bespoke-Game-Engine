@@ -14,6 +14,7 @@
 #include "headers/light_objects.h"
 #include "headers/GameObj.h"
 #include "headers/Scene.h"
+#include "headers/Saving_Loading.h"
 #include <vector>
 
 char keyOnce[GLFW_KEY_LAST + 1];
@@ -131,22 +132,23 @@ int main() {
 	stbi_set_flip_vertically_on_load(true);
 
 	SceneManager sceneManager;
-
+/*
 	Scene* scene0 = new Scene;
 	Scene* scene1 = new Scene;
 
-	//GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true);
-	//GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false);
-	//GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false);
+	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true);
+	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false);
+	GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false);
 
 	GameObject* bag1 = new GameObject("Models/bag_model/backpack.obj", true);
 	GameObject* rock1 = new GameObject("Models/basecharacter/funnyrock.obj", false);
 	GameObject* skull1 = new GameObject("Models/basecharacter/brideskull.obj", false);
 
-	//scene0.addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	//scene0.addGameObject(rock, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	//scene0.addGameObject(skull, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	scene0->gameObjects = sl_ins->loading();
+	scene0->addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	scene0->addGameObject(rock, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	scene0->addGameObject(skull, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	
+	//scene0->gameObjects = sl_ins->loading();
 
 
 
@@ -155,7 +157,7 @@ int main() {
 	scene1->addGameObject(skull1, glm::vec3(0.0f, 0.0f, 2.0f), 0.0f, 0.0f, 0.0f, 5.0f);
 
 	sceneManager.addScene(scene0);
-	sceneManager.addScene(scene1);
+	sceneManager.addScene(scene1);*/
 
 	/*vector<GameObject*> GameObjVec = { bag,rock,skull };
 
@@ -165,7 +167,9 @@ int main() {
 	bag->tvecm = glm::vec3(3.0f,0.0f,0.0f);
 	rock->scalem = 0.5f; rock->tvecm = glm::vec3(-3.0f, 0.0f, 0.0f);
 	skull->scalem = 5.0f;*/
+	//saving_loading* sl_ins = new saving_loading();
 
+	sceneManager.scenes = sl_ins->loading();
 
 	GLuint vao;                                   //creating the buffer data for the Triangle
 	glGenVertexArrays(1, &vao);
@@ -306,7 +310,6 @@ int main() {
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
 		processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene);
-		cout << size(sceneManager.scenes[selScene]->gameObjects) << " ";
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -414,23 +417,14 @@ int main() {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-	sl_ins->saving(scene0->gameObjects);
+	sl_ins->saving(sceneManager.scenes);
 
 
 
 
-	for (GameObject* obj : scene0->gameObjects) {
+	for (Scene* obj : sceneManager.scenes) {
 		delete obj;
 	}
-	scene0->gameObjects.clear();
-
-	for (GameObject* obj : scene1->gameObjects) {
-		delete obj;
-	}
-	scene1->gameObjects.clear();
-
-	delete scene0;
-	delete scene1;
 
 	return 0;
 }

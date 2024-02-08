@@ -86,6 +86,9 @@
     <ClInclude Include="headers\Scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\Saving_Loading.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\emissive.frag">
