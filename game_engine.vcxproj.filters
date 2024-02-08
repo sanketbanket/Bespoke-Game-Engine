@@ -80,6 +80,12 @@
     <ClInclude Include="headers\light_objects.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="headers\GameObj.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="headers\Scene.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\emissive.frag">
