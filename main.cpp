@@ -36,6 +36,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
 	GLFWmonitor* a = glfwGetPrimaryMonitor();
 	GLFWwindow* window = glfwCreateWindow(width, height, "LIGHTING TESTS", NULL, NULL);
@@ -49,7 +50,7 @@ int main() {
 	gladLoadGL();
 	glViewport(0, 0, width, height);
 
-
+	glEnable(GL_MULTISAMPLE);
 
 
 	GLfloat cube_verts[] = {  //coords      //normals             //texture coordinates 
@@ -131,8 +132,8 @@ int main() {
 
 	SceneManager sceneManager;
 
-	Scene scene0;
-	Scene scene1;
+	Scene* scene0 = new Scene;
+	Scene* scene1 = new Scene;
 
 	//GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true);
 	//GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false);
@@ -141,16 +142,17 @@ int main() {
 	GameObject* bag1 = new GameObject("Models/bag_model/backpack.obj", true);
 	GameObject* rock1 = new GameObject("Models/basecharacter/funnyrock.obj", false);
 	GameObject* skull1 = new GameObject("Models/basecharacter/brideskull.obj", false);
+
 	//scene0.addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 	//scene0.addGameObject(rock, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 	//scene0.addGameObject(skull, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	scene0.gameObjects = sl_ins->loading();
+	scene0->gameObjects = sl_ins->loading();
 
 
 
-	scene1.addGameObject(bag1, glm::vec3(2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.3f);
-	scene1.addGameObject(rock1, glm::vec3(-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	scene1.addGameObject(skull1, glm::vec3(0.0f, 0.0f, 2.0f), 0.0f, 0.0f, 0.0f, 5.0f);
+	scene1->addGameObject(bag1, glm::vec3(2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.3f);
+	scene1->addGameObject(rock1, glm::vec3(-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	scene1->addGameObject(skull1, glm::vec3(0.0f, 0.0f, 2.0f), 0.0f, 0.0f, 0.0f, 5.0f);
 
 	sceneManager.addScene(scene0);
 	sceneManager.addScene(scene1);
@@ -253,7 +255,7 @@ int main() {
 
 	//floor done
 
-	float ambience = 0.2f;  //define the ambient light strength
+	float ambience = 0.0f;  //define the ambient light strength
 	glm::vec3 ambient_light(1.0f, 1.0f, 1.0f);  //ambient light color
 	ambient_light *= ambience;
 
@@ -288,7 +290,7 @@ int main() {
 	//making the lights
 	PointLight point(glm::vec3(5.0f, 1.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f));
 	
-	SunLight sun(glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f));
+	SunLight sun(glm::vec3(0.0f, -1.0f, 1.0f), 0.0f*glm::vec3(1.0f, 1.0f, 0.8f), 0.0f*glm::vec3(1.0f, 1.0f, 0.8f));
 	vector<SunLight*> suns = {};
 	suns.push_back(&sun);
 	
@@ -303,7 +305,8 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		processTransformInputs(window, size(scene1.gameObjects), selectedGameObj, sceneManager, selScene);
+		processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene);
+		cout << size(sceneManager.scenes[selScene]->gameObjects) << " ";
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -335,6 +338,7 @@ int main() {
 		emissiveShader.Setmat4("model", glm::translate(model, glm::vec3(0.0f, 4.0f, -4.0f)));
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 
+		RenderLights(emissiveShader, pointLights, suns);
 
 		
 		diffuseShader.Activate();
@@ -410,27 +414,30 @@ int main() {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 
-	sl_ins->saving(scene0.gameObjects);
+	sl_ins->saving(scene0->gameObjects);
 
 
 
 
-	for (GameObject* obj : scene0.gameObjects) {
+	for (GameObject* obj : scene0->gameObjects) {
 		delete obj;
 	}
-	scene0.gameObjects.clear();
+	scene0->gameObjects.clear();
 
-	for (GameObject* obj : scene1.gameObjects) {
+	for (GameObject* obj : scene1->gameObjects) {
 		delete obj;
 	}
-	scene1.gameObjects.clear();
+	scene1->gameObjects.clear();
+
+	delete scene0;
+	delete scene1;
 
 	return 0;
 }
 
 void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneManager sceneManager, int SelScene)
 {
-	GameObject* selectedGO = sceneManager.scenes[sceneManager.currentSceneIndex].gameObjects[SelObj];
+	GameObject* selectedGO = sceneManager.scenes[sceneManager.currentSceneIndex]->gameObjects[SelObj];
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->tvecm[1] = selectedGO->tvecm[1] + 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->tvecm[1] = selectedGO->tvecm[1] - 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { selectedGO->tvecm[0] = selectedGO->tvecm[0] + 0.03f; }
@@ -450,17 +457,17 @@ void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneMa
 		selectedGameObj++;
 		if (selectedGameObj >= GOVsize) selectedGameObj = 0;
 	}
-	if (glfwGetKeyOnce(window, GLFW_KEY_Y) == GLFW_PRESS)
+	if (glfwGetKeyOnce(window, GLFW_KEY_1) == GLFW_PRESS)
 	{
 		selScene = 0;
 	}
-	if (glfwGetKeyOnce(window, GLFW_KEY_U) == GLFW_PRESS)
+	if (glfwGetKeyOnce(window, GLFW_KEY_2) == GLFW_PRESS)
 	{
 		selScene = 1;
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
 		GameObject* x = new GameObject("Models/cwire/sword.obj", false);
-		sceneManager.scenes[sceneManager.currentSceneIndex].gameObjects.push_back(x);
+		sceneManager.scenes[sceneManager.currentSceneIndex]->addGameObject(x);
 	}
 }

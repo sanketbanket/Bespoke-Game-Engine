@@ -31,8 +31,8 @@ public:
 class SceneManager {
 public:
     // Add a scene to the scene manager
-    void addScene(Scene scene) {
-        scenes.push_back(std::move(scene));
+    void addScene(Scene* scene) {
+        scenes.push_back(scene);
     }
 
     // Switch to a scene by index
@@ -48,7 +48,7 @@ public:
     // Render the current scene
     void renderCurrentScene(Shader ourShader) {
         if (currentSceneIndex < scenes.size()) {
-            scenes[currentSceneIndex].render(ourShader);
+            scenes[currentSceneIndex]->render(ourShader);
         }
         else {
             std::cerr << "No scene available" << std::endl;
@@ -56,7 +56,7 @@ public:
     }
 
     size_t currentSceneIndex = 0;
-    vector<Scene> scenes;
+    vector<Scene*> scenes;
 };
 
 

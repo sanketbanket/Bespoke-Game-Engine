@@ -7,31 +7,6 @@
 #include <vector>
 #include "Model.h"
 
-
-
-
-void RenderLights(Shader& shader, vector<PointLight*> points = {}, vector<SunLight*> suns = {}, vector<ConeLight*> cones = {}) {
-	if (!suns.empty()) {
-		for (int i = 0; i < suns.size(); i++) {
-			suns[i]->Render(shader);
-		}
-	}
-	if (!cones.empty()) {
-		for (int i = 0; i < cones.size(); i++) {
-			cones[i]->Render(shader);
-		}
-	}
-	if (!points.empty()) {
-		for (int i = 0; i < points.size(); i++) {
-			points[i]->Render(shader);
-		}
-	}
-}
-
-
-
-
-
 class Light {
 public : 
 	virtual ~Light() {};
@@ -171,6 +146,24 @@ void PassConesToShader(Shader& shader, vector<ConeLight*> lights) {
 		ApplyConeToShader(shader, lights[i], i);
 	}
 	shader.Set1i("coneCount", lights.size());
+}
+
+void RenderLights(Shader& shader, vector<PointLight*> points = {}, vector<SunLight*> suns = {}, vector<ConeLight*> cones = {}) {
+	if (!suns.empty()) {
+		for (int i = 0; i < suns.size(); i++) {
+			suns[i]->Render(shader);
+		}
+	}
+	if (!cones.empty()) {
+		for (int i = 0; i < cones.size(); i++) {
+			cones[i]->Render(shader);
+		}
+	}
+	if (!points.empty()) {
+		for (int i = 0; i < points.size(); i++) {
+			points[i]->Render(shader);
+		}
+	}
 }
 
 #endif
