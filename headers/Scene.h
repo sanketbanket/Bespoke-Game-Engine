@@ -14,7 +14,6 @@ public:
         object->xaxisanglem = xaxisanglem;
         object->yaxisanglem = yaxisanglem;
         object->zaxisanglem = zaxisanglem;
-        object->scalem = scale;
         gameObjects.push_back(object);
     }
 

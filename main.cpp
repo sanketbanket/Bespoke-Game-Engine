@@ -1,3 +1,4 @@
+#include<Windows.h>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -16,6 +17,11 @@
 #include "headers/Scene.h"
 #include "headers/Saving_Loading.h"
 #include <vector>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include <imgui_internal.h>
+#pragma comment(lib, "OpenGL32.lib")
 
 char keyOnce[GLFW_KEY_LAST + 1];
 #define glfwGetKeyOnce(WINDOW, KEY)				\
@@ -26,7 +32,191 @@ char keyOnce[GLFW_KEY_LAST + 1];
 int selectedGameObj = 0;
 int selScene = 0;
 
-void processTransformInputs(GLFWwindow* window, int GOAsize, int SelObj, SceneManager sceneManager, int SelScene);
+void processTransformInputs(GLFWwindow* window, int GOAsize, int SelObj, SceneManager sceneManager, int SelScene, Camera scenecam, bool& focus);
+
+void FileExplorerDialog(vector<GameObject*>& GameObjVec) {
+	// Initialize a structure for the file dialog
+	OPENFILENAME ofn;
+	wchar_t szFile[260] = { 0 }; // Buffer for file name
+
+	// Initialize OPENFILENAME
+	ZeroMemory(&ofn, sizeof(ofn));
+	ofn.lStructSize = sizeof(ofn);
+	ofn.hwndOwner = NULL;
+	ofn.lpstrFile = szFile;
+	ofn.lpstrFile[0] = '\0';
+	ofn.nMaxFile = sizeof(szFile);
+	ofn.lpstrFilter = (LPCWSTR)"All\0*.*\0Text\0*.TXT\0";
+	ofn.nFilterIndex = 1;
+	ofn.lpstrFileTitle = NULL;
+	ofn.nMaxFileTitle = 0;
+	ofn.lpstrInitialDir = NULL;
+	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+
+	// Display the Open dialog box
+	if (GetOpenFileName(&ofn) == TRUE) {
+		int len = WideCharToMultiByte(CP_UTF8, 0, ofn.lpstrFile, -1, NULL, 0, NULL, NULL);
+		std::string fileName(len, 0);
+		WideCharToMultiByte(CP_UTF8, 0, ofn.lpstrFile, -1, &fileName[0], len, NULL, NULL);
+		std::cout << "Selected file: " << fileName << std::endl;
+		for (int i = 0; i < size(GameObjVec); i++) {
+			cout << GameObjVec[i]->name;
+		}
+		string objname;
+		cin >> objname;
+		GameObject* newObj = new GameObject(fileName, false, objname);
+		GameObjVec.push_back(newObj);
+	}
+	else {
+		std::cout << "No file selected" << std::endl;
+	}
+}
+
+int DisplayObjectListAndGetIndex(vector<GameObject*>& GameObjVec, int& selectedItemIndex) {
+	//int selectedIndex = -1;
+
+	// Display the list of objects
+	for (int i = 0; i < GameObjVec.size(); ++i) {
+		if (ImGui::Selectable(GameObjVec[i]->name.c_str(), selectedItemIndex == i)) {
+			selectedItemIndex = i;
+		}
+	}
+	if (ImGui::Button("Open File Explorer")) {
+		FileExplorerDialog(GameObjVec);
+	}
+
+	return selectedItemIndex;
+}
+void Gui(vector<GameObject*>& GameObjVec) {
+
+	// feed inputs to dear imgui, start new frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// render your GUI
+	if (ImGui::Begin("heirarchy", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		selectedGameObj = DisplayObjectListAndGetIndex(GameObjVec, selectedGameObj);
+	}
+	ImGui::End();
+	ImGui::SetNextWindowSize(ImVec2(500, 500));
+	if (ImGui::Begin("Transform", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		ImGui::Columns(4);
+		//position
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+
+		ImGui::NextColumn();
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		if (ImGui::Button("X", buttonSize))
+			GameObjVec[selectedGameObj]->tvecm.x = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Y", buttonSize))
+			GameObjVec[selectedGameObj]->tvecm.y = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Z", buttonSize))
+			GameObjVec[selectedGameObj]->tvecm.z = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
+		ImGui::NextColumn();
+		//rotation
+		ImGui::Text("Rotation");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("X", buttonSize))
+			GameObjVec[selectedGameObj]->xaxisanglem = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X_angle", &GameObjVec[selectedGameObj]->xaxisanglem);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Y", buttonSize))
+			GameObjVec[selectedGameObj]->yaxisanglem = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y_angle", &GameObjVec[selectedGameObj]->yaxisanglem);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+		if (ImGui::Button("Z", buttonSize))
+			GameObjVec[selectedGameObj]->zaxisanglem = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z_angle", &GameObjVec[selectedGameObj]->zaxisanglem);
+		ImGui::NextColumn();
+		//scale
+		ImGui::Text("Scale");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("X", buttonSize))
+			GameObjVec[selectedGameObj]->svecm.x = 1;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X_scale", &GameObjVec[selectedGameObj]->svecm.x, 0.05);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Y", buttonSize))
+			GameObjVec[selectedGameObj]->svecm.y = 1;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y_scale", &GameObjVec[selectedGameObj]->svecm.y, 0.05);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Z", buttonSize))
+			GameObjVec[selectedGameObj]->svecm.z = 1;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z_scale", &GameObjVec[selectedGameObj]->svecm.z, 0.05);
+	}
+	ImGui::End();
+	ImGui::Render();
+	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
 
 int main() {
 	const int width = 1920;
@@ -132,42 +322,28 @@ int main() {
 	stbi_set_flip_vertically_on_load(true);
 
 	SceneManager sceneManager;
-/*
-	Scene* scene0 = new Scene;
+
+	/*Scene* scene0 = new Scene;
 	Scene* scene1 = new Scene;
 
-	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true);
-	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false);
-	GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false);
+	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true, "bag");
+	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false, "rock");
+	GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false, "skull");
 
-	GameObject* bag1 = new GameObject("Models/bag_model/backpack.obj", true);
-	GameObject* rock1 = new GameObject("Models/basecharacter/funnyrock.obj", false);
-	GameObject* skull1 = new GameObject("Models/basecharacter/brideskull.obj", false);
+	GameObject* bag1 = new GameObject("Models/bag_model/backpack.obj", true, "bag");
+	GameObject* rock1 = new GameObject("Models/basecharacter/funnyrock.obj", false, "rock");
+	GameObject* skull1 = new GameObject("Models/basecharacter/brideskull.obj", false, "skull");
 
 	scene0->addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 	scene0->addGameObject(rock, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 	scene0->addGameObject(skull, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 	
-	//scene0->gameObjects = sl_ins->loading();
-
-
-
 	scene1->addGameObject(bag1, glm::vec3(2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.3f);
 	scene1->addGameObject(rock1, glm::vec3(-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
 	scene1->addGameObject(skull1, glm::vec3(0.0f, 0.0f, 2.0f), 0.0f, 0.0f, 0.0f, 5.0f);
 
 	sceneManager.addScene(scene0);
 	sceneManager.addScene(scene1);*/
-
-	/*vector<GameObject*> GameObjVec = { bag,rock,skull };
-
-	saving_loading* sl_ins = new saving_loading();
-	vector<GameObject*> ret_ve = sl_ins->loading();
-
-	bag->tvecm = glm::vec3(3.0f,0.0f,0.0f);
-	rock->scalem = 0.5f; rock->tvecm = glm::vec3(-3.0f, 0.0f, 0.0f);
-	skull->scalem = 5.0f;*/
-	//saving_loading* sl_ins = new saving_loading();
 
 	sceneManager.scenes = sl_ins->loading();
 
@@ -301,7 +477,19 @@ int main() {
 	vector<PointLight*> pointLights;
 	pointLights.push_back(&point);
 
+	// Setup Dear ImGui context
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO();
+	// Setup Platform/Renderer bindings
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330 core");
+	// Setup Dear ImGui style
+	ImGui::StyleColorsDark();
+
 	//rendering loop 
+
+	bool focus = true;
 
 	while (!glfwWindowShouldClose(window)) {
 
@@ -309,7 +497,7 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene);
+		processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene, scenecam, focus);
 
 		float scale = 1.0f;
 		emissiveShader.Set1f("scale", 1.0f);
@@ -317,7 +505,7 @@ int main() {
 		glClearColor(0.2f, 0.0f, 0.2f, 1.0f);
 		
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		scenecam.GetKeyInputs(window, 0.05f, true);
+		scenecam.GetKeyInputs(window, 0.05f, focus);
 		glm::mat4 model = glm::mat4(1.0f);
 		glm::mat4 transform = scenecam.GetTransformMatrix();
 
@@ -404,6 +592,11 @@ int main() {
 		sceneManager.switchToScene(selScene);
 		sceneManager.renderCurrentScene(diffuseShader);
 		
+		if (!focus)
+		{
+			Gui(sceneManager.scenes[selScene]->gameObjects);
+		}
+		
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -419,9 +612,6 @@ int main() {
 
 	sl_ins->saving(sceneManager.scenes);
 
-
-
-
 	for (Scene* obj : sceneManager.scenes) {
 		delete obj;
 	}
@@ -429,7 +619,7 @@ int main() {
 	return 0;
 }
 
-void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneManager sceneManager, int SelScene)
+void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneManager sceneManager, int SelScene, Camera scenecam, bool& focus)
 {
 	GameObject* selectedGO = sceneManager.scenes[sceneManager.currentSceneIndex]->gameObjects[SelObj];
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->tvecm[1] = selectedGO->tvecm[1] + 0.03f; }
@@ -444,8 +634,6 @@ void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneMa
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Y) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->yaxisanglem = selectedGO->yaxisanglem - 1.0f; }
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->zaxisanglem = selectedGO->zaxisanglem + 1.0f; }
 	if (glfwGetKey(window, GLFW_KEY_R) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->zaxisanglem = selectedGO->zaxisanglem - 1.0f; }
-	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->scalem = selectedGO->scalem + 0.01f; }
-	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->scalem = selectedGO->scalem - 0.01f; }
 	if (glfwGetKeyOnce(window, GLFW_KEY_N) == GLFW_PRESS)
 	{
 		selectedGameObj++;
@@ -461,7 +649,18 @@ void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneMa
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		GameObject* x = new GameObject("Models/cwire/sword.obj", false);
+		GameObject* x = new GameObject("Models/cwire/sword.obj", false,"sword");
 		sceneManager.scenes[sceneManager.currentSceneIndex]->addGameObject(x);
+	}
+	if (glfwGetKeyOnce(window, GLFW_KEY_G) == GLFW_PRESS) {
+		focus = !focus;
+		if (focus)
+		{
+			glfwSetCursorPos(window, scenecam.xposMouse, scenecam.yposMouse);
+		}
+		else {
+			//glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
+		}
+		cout << focus;
 	}
 }

@@ -91,16 +91,22 @@ void Camera::ghetto_Mouse_Callback(GLFWwindow* window) { // ghetto cuz using rig
 bool first = true;
 
 
-void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool debug) {     //all the transformations will move the world itself inverse to the camera; 
+void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool focus) {     //all the transformations will move the world itself inverse to the camera; 
 	using namespace glm;
 	vec3 front(0.0f, 0.0f, -1.0f);
 	
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	if (first) { glfwGetCursorPos(window, &xposMouse, &yposMouse); first = false; }
 	
 	//if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {ghetto_Mouse_Callback(window);}
-	ghetto_Mouse_Callback(window);
-
+	if (focus)
+	{
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		ghetto_Mouse_Callback(window);
+	}
+	else {
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	}
 	//glfwSetCursorPosCallback(window, mouseCallback);
 
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {

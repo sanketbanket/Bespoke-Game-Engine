@@ -26,11 +26,14 @@ public:
         file << "\n";
         for (int k{}; k < inputObject.size(); k++) {
             for (int j{}; j < inputObject[k]->gameObjects.size(); j++) {
+                std::string objname = inputObject[k]->gameObjects[j]->name;
                 std::string path = inputObject[k]->gameObjects[j]->path;
                 std::vector<float> current_mat = inputObject[k]->gameObjects[j]->get_location();
+                file << objname;
+                file << "\n";
                 file << path;
                 file << "\n";
-                for (int i{}; i < 27; i++) {
+                for (int i{}; i < 26; i++) {
                     file << current_mat[i];
                     file << " ";
                 }
@@ -59,6 +62,8 @@ public:
                 std::vector<GameObject*> ret_vector{};
                 for (int j{}; j < numObjectsScenes[i];j++) {
                     getline(file, line);
+                    std::string name = line;
+                    getline(file, line);
                     std::string path = line;
                     std::vector<float> inputPose{};
                     getline(file, line);
@@ -71,7 +76,7 @@ public:
                         i++;
                     }
                     // gameObject->specifications = arr;
-                    GameObject* gameObject = new GameObject(path, inputPose[26]);
+                    GameObject* gameObject = new GameObject(path, inputPose[25], name);
                     gameObject->set_location(inputPose);
                     ret_vector.push_back(gameObject);
                 }

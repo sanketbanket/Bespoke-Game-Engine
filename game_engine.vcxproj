@@ -26,6 +26,13 @@
     <ClCompile Include="headers\textureClass.cpp" />
     <ClCompile Include="headers\VAO.cpp" />
     <ClCompile Include="headers\VBO.cpp" />
+    <ClCompile Include="libraries\include\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="libraries\include\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="libraries\include\imgui\imgui.cpp" />
+    <ClCompile Include="libraries\include\imgui\imgui_demo.cpp" />
+    <ClCompile Include="libraries\include\imgui\imgui_draw.cpp" />
+    <ClCompile Include="libraries\include\imgui\imgui_tables.cpp" />
+    <ClCompile Include="libraries\include\imgui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stb.cpp" />
   </ItemGroup>
@@ -42,9 +49,22 @@
     <ClInclude Include="headers\textureClass.h" />
     <ClInclude Include="headers\VAO.h" />
     <ClInclude Include="headers\VBO.h" />
+    <ClInclude Include="libraries\include\imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="libraries\include\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="libraries\include\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="libraries\include\imgui\imconfig.h" />
+    <ClInclude Include="libraries\include\imgui\imgui.h" />
+    <ClInclude Include="libraries\include\imgui\imgui_internal.h" />
+    <ClInclude Include="libraries\include\imgui\imstb_rectpack.h" />
+    <ClInclude Include="libraries\include\imgui\imstb_textedit.h" />
+    <ClInclude Include="libraries\include\imgui\imstb_truetype.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="libraries\include\imgui\.editorconfig" />
+    <None Include="libraries\include\imgui\.gitattributes" />
+    <None Include="libraries\include\imgui\.gitignore" />
+    <None Include="libraries\include\imgui\misc\debuggers\imgui.natstepfilter" />
     <None Include="shaders\default.frag" />
     <None Include="shaders\diffuse.frag" />
     <None Include="shaders\emissive.frag" />
@@ -59,6 +79,12 @@
     <Image Include="textures\image_texture.png" />
     <Image Include="textures\obama.jpg" />
     <Image Include="textures\texture.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="libraries\include\imgui\LICENSE.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Natvis Include="libraries\include\imgui\misc\debuggers\imgui.natvis" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -165,7 +191,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)assimp_test\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)libraries\include\imgui\backends;$(ProjectDir)libraries\include\imgui;$(ProjectDir)assimp_test\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>

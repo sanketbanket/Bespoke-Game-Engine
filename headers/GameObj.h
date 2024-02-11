@@ -18,13 +18,13 @@ public:
     std::string path{};
 	glm::mat4 GOmodelmat = glm::mat4(1.f);
 	glm::vec3 tvecm = glm::vec3(0.0f, 0.0f, 0.0f);
-	float scalem = 1.0f;
 	glm::vec3 svecm = glm::vec3(1.0f, 1.0f, 1.0f);
 	float xaxisanglem = 0.0f;
 	float yaxisanglem = 0.0f;
 	float zaxisanglem = 0.0f;
     bool fliptextures = false;
 	Model ourModel;
+    string name;
 	GameObject()
 	{
 
@@ -32,8 +32,9 @@ public:
     GameObject(std::string path) {
         this->path = path;
     }
-	GameObject(const std::string& modelpath, bool fliptextures)
+	GameObject(const std::string& modelpath, bool fliptextures, const std::string& objectname)
 	{
+        this->name = objectname;
         this->fliptextures = fliptextures;
         this->path = modelpath;
 		stbi_set_flip_vertically_on_load(fliptextures);
@@ -44,7 +45,7 @@ public:
 	{
 		GOmodelmat = glm::mat4(1.f);
 		GOmodelmat = glm::translate(GOmodelmat, tvecm);
-		GOmodelmat = glm::scale(GOmodelmat, glm::vec3(scalem,scalem,scalem));
+		GOmodelmat = glm::scale(GOmodelmat, svecm);
 		GOmodelmat = glm::rotate(GOmodelmat, glm::radians(xaxisanglem), glm::vec3(1.0f, 0.0f, 0.0f));
 		GOmodelmat = glm::rotate(GOmodelmat, glm::radians(yaxisanglem), glm::vec3(0.0f, 1.0f, 0.0f));
 		GOmodelmat = glm::rotate(GOmodelmat, glm::radians(zaxisanglem), glm::vec3(0.0f, 0.0f, 1.0f));
@@ -70,7 +71,6 @@ public:
         this->xaxisanglem = input_pose[22];
         this->yaxisanglem = input_pose[23];
         this->zaxisanglem = input_pose[24];
-        this->scalem = input_pose[25];
         this->fliptextures = input_pose[26];
         return;
     }
@@ -89,7 +89,6 @@ public:
         return_pose.push_back(this->xaxisanglem);
         return_pose.push_back(this->yaxisanglem);
         return_pose.push_back(this->zaxisanglem);
-        return_pose.push_back(this->scalem);
         return_pose.push_back(this->fliptextures);
         return return_pose;
     }
