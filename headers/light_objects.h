@@ -7,8 +7,11 @@
 #include <vector>
 #include "Model.h"
 
+
+
 class Light {
-public : 
+public :
+	float strength = 1.0f;
 	virtual ~Light() {};
 };
 
@@ -21,8 +24,8 @@ public:
 	Model* display= new Model("models/Lights/PointLight.obj");
 	PointLight(glm::vec3 pos, glm::vec3 diff, glm::vec3 spec) {
 		Position = pos;
-		Diffuse = diff;
-		Specular = spec;
+		Diffuse = glm::normalize(diff) * strength;
+		Specular = glm::normalize(spec) * strength;
 	};
 	void Render(Shader& shader) {
 		shader.Activate();
@@ -44,8 +47,8 @@ public:
 
 	SunLight(glm::vec3 dir, glm::vec3 diff, glm::vec3 spec) {
 		Direction = dir;
-		Diffuse = diff;
-		Specular = spec;
+		Diffuse = glm::normalize(diff) * strength;
+		Specular = glm::normalize(spec) * strength;
 	};
 	void Render(Shader& shader) {
 		shader.Activate();
@@ -75,8 +78,8 @@ public:
 	Model* display = new Model("models/Lights/ConeLight.obj");
 	ConeLight(glm::vec3 pos, glm::vec3 dir, float cutoff, glm::vec3 diff, glm::vec3 spec) {
 		Direction = dir;
-		Diffuse = diff;
-		Specular = spec;
+		Diffuse = glm::normalize(diff) * strength;
+		Specular = glm::normalize(spec) * strength;
 		Position = pos;
 		Cutoff = cutoff;
 	};
@@ -91,8 +94,6 @@ public:
 		model = glm::translate(model, Position);
 		model = glm::rotate(model, angle, axis);
 		model = glm::scale(model, glm::vec3(0.2f));
-
-
 		shader.Setmat4("model", model);
 		display->Draw(shader);
 	}
@@ -102,21 +103,21 @@ public:
 void ApplyPointToShader(Shader& shader, PointLight *light, int index) {
 	string name = "Points[";
 	shader.Setvec3((name + to_string(index) + "].position").c_str(), light->Position);
-	shader.Setvec3((name + to_string(index) + "].diffuse").c_str(), light->Diffuse);
-	shader.Setvec3((name + to_string(index) + "].specular").c_str(), light->Specular);
+	shader.Setvec3((name + to_string(index) + "].diffuse").c_str(), glm::normalize(light->Diffuse) * light->strength);
+	shader.Setvec3((name + to_string(index) + "].specular").c_str(), glm::normalize(light->Specular) * light->strength);
 }
 void ApplySunToShader(Shader& shader, SunLight *light, int index) {
 	string name = "Suns[";
 	shader.Setvec3((name + to_string(index) + "].direction").c_str(), light->Direction);
-	shader.Setvec3((name + to_string(index) + "].diffuse").c_str(), light->Diffuse);
-	shader.Setvec3((name + to_string(index) + "].specular").c_str(), light->Specular);
+	shader.Setvec3((name + to_string(index) + "].diffuse").c_str(), glm::normalize(light->Diffuse) * light->strength);
+	shader.Setvec3((name + to_string(index) + "].specular").c_str(), glm::normalize(light->Specular) * light->strength);
 }
 void ApplyConeToShader(Shader& shader, ConeLight *light, int index) {
 	string name = "Cones[";
 	shader.Setvec3((name + to_string(index) + "].position").c_str(), light->Position);
 	shader.Setvec3((name + to_string(index) + "].direction").c_str(), light->Direction);
-	shader.Setvec3((name + to_string(index) + "].diffuse").c_str(), light->Diffuse);
-	shader.Setvec3((name + to_string(index) + "].specular").c_str(), light->Specular);
+	shader.Setvec3((name + to_string(index) + "].diffuse").c_str(), glm::normalize(light->Diffuse) * light->strength);
+	shader.Setvec3((name + to_string(index) + "].specular").c_str(), glm::normalize(light->Specular) * light->strength);
 	shader.Set1f((name + to_string(index) + "].cutoff_angle").c_str(), light->Cutoff);
 }
  
