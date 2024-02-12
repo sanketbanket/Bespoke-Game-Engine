@@ -596,7 +596,17 @@ int main() {
 		{
 			Gui(sceneManager.scenes[selScene]->gameObjects);
 		}
+		if (glfwGetKeyOnce(window, GLFW_KEY_U) == GLFW_PRESS)
+		{
+			cout << "name" << sceneManager.scenes[selScene]->gameObjects[selectedGameObj]->name << endl;
+			cout << "path" << sceneManager.scenes[selScene]->gameObjects[selectedGameObj]->path << endl;
+			cout << "fltexture" << sceneManager.scenes[selScene]->gameObjects[selectedGameObj]->fliptextures << endl;
+			for (int i = 0;i < sceneManager.scenes[1]->gameObjects.size();i++) {
+				cout << "scene2GOnames" << sceneManager.scenes[1]->gameObjects[i]->name << endl;
+			}
+		}
 		
+
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -639,12 +649,14 @@ void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneMa
 		selectedGameObj++;
 		if (selectedGameObj >= GOVsize) selectedGameObj = 0;
 	}
-	if (glfwGetKeyOnce(window, GLFW_KEY_1) == GLFW_PRESS)
+	if (glfwGetKeyOnce(window, GLFW_KEY_1) == GLFW_PRESS and focus)
 	{
+		selectedGameObj = 0;
 		selScene = 0;
 	}
-	if (glfwGetKeyOnce(window, GLFW_KEY_2) == GLFW_PRESS)
+	if (glfwGetKeyOnce(window, GLFW_KEY_2) == GLFW_PRESS and focus)
 	{
+		selectedGameObj = 0;
 		selScene = 1;
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_Q) == GLFW_PRESS)

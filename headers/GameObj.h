@@ -71,7 +71,7 @@ public:
         this->xaxisanglem = input_pose[22];
         this->yaxisanglem = input_pose[23];
         this->zaxisanglem = input_pose[24];
-        this->fliptextures = input_pose[26];
+        this->fliptextures = input_pose[25];
         return;
     }
 
