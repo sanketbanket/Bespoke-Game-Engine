@@ -84,9 +84,279 @@ int DisplayObjectListAndGetIndex(vector<GameObject*>& GameObjVec, int& selectedI
 	if (ImGui::Button("Open File Explorer")) {
 		FileExplorerDialog(GameObjVec);
 	}
+	if (ImGui::Button("Delete Selected GameObject")) {
+		GameObjVec.erase(GameObjVec.begin() + selectedItemIndex);
+		selectedItemIndex--;
+	}
 
 	return selectedItemIndex;
 }
+//void ImGuiConeLight() {
+//	ImGui_ImplOpenGL3_NewFrame();
+//	ImGui_ImplGlfw_NewFrame();
+//	ImGui::NewFrame();
+//
+//	// render your GUI
+//
+//	ImGui::SetNextWindowSize(ImVec2(500, 500));
+//	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+//		ImGui::Columns(4);
+//		ImGui::Button("Cone light");   //diffuse,specular,strength,pos,dir,cutoff angle
+//		ImGui::Text("Position");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//
+//		ImGui::NextColumn();
+//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+//
+//		if (ImGui::Button("X", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.x = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Y", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.y = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Z", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.z = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
+//		ImGui::NextColumn();
+//		ImGui::Text("Position");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//
+//		ImGui::NextColumn();
+//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+//
+//		if (ImGui::Button("X", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.x = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Y", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.y = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Z", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.z = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
+//		ImGui::NextColumn();
+//		ImGui::Text("Strength");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//		ImGui::DragFloat("##Strength", &GameObjVec[selectedGameObj]->strength, 0.1);
+//		ImGui::Text("Cutoff angle");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//		ImGui::DragFloat("##Cutoff", &GameObjVec[selectedGameObj]->cutoff, 0.1);
+//		ImGui::Text("Diffuse");
+//		ImGui::SameLine();
+//		ImGui::ColorEdit4("Diffuse", &GameObjVec[selectedGameObj]->diffuse);
+//		ImGui::Text("Specular");
+//		ImGui::SameLine();
+//		ImGui::ColorEdit4("Specular", &GameObjVec[selectedGameObj]->specular);
+//	}ImGui::End();
+//}
+//void ImGuiSunLight() {
+//	ImGui_ImplOpenGL3_NewFrame();
+//	ImGui_ImplGlfw_NewFrame();
+//	ImGui::NewFrame();
+//
+//	// render your GUI
+//
+//	ImGui::SetNextWindowSize(ImVec2(500, 500));
+//	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+//		ImGui::Columns(4);
+//		ImGui::Button("Cone light");   //diffuse,specular,strength,pos,dir
+//		ImGui::Text("Position");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//
+//		ImGui::NextColumn();
+//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+//
+//		if (ImGui::Button("X", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.x = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Y", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.y = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Z", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.z = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
+//		ImGui::NextColumn();
+//		ImGui::Text("Position");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//
+//		ImGui::NextColumn();
+//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+//
+//		if (ImGui::Button("X", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.x = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Y", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.y = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Z", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.z = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
+//		ImGui::NextColumn();
+//		ImGui::Text("Strength");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//		ImGui::DragFloat("##Strength", &GameObjVec[selectedGameObj]->strength, 0.1);
+//
+//		ImGui::Text("Diffuse");
+//		ImGui::SameLine();
+//		ImGui::ColorEdit4("Diffuse", &GameObjVec[selectedGameObj]->diffuse);
+//		ImGui::Text("Specular");
+//		ImGui::SameLine();
+//		ImGui::ColorEdit4("Specular", &GameObjVec[selectedGameObj]->specular);
+//	}ImGui::End();
+//}
+//void ImguiPointLight( ) {  //strength,position,diffuse,specular
+//	ImGui_ImplOpenGL3_NewFrame();
+//	ImGui_ImplGlfw_NewFrame();
+//	ImGui::NewFrame();
+//
+//	// render your GUI
+//	
+//	ImGui::SetNextWindowSize(ImVec2(500, 500));
+//	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+//		ImGui::Columns(4);
+//		//position]
+//		ImGui::Button("Point light");
+//		ImGui::Text("Position");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//
+//		ImGui::NextColumn();
+//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+//
+//		if (ImGui::Button("X", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.x = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Y", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.y = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
+//		ImGui::SameLine();
+//
+//		ImGui::NextColumn();
+//
+//
+//		if (ImGui::Button("Z", buttonSize))
+//			GameObjVec[selectedGameObj]->tvecm.z = 0;
+//
+//
+//		ImGui::SameLine();
+//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
+//		ImGui::NextColumn();
+//		ImGui::Text("Strength");
+//		ImGui::SameLine();
+//		ImGui::SetColumnWidth(0, 65);
+//		ImGui::DragFloat("##Strength", &GameObjVec[selectedGameObj]->strength, 0.1);
+//		ImGui::Text("Diffuse");
+//		ImGui::SameLine();
+//		ImGui::ColorEdit4("Diffuse", &GameObjVec[selectedGameObj]->diffuse);
+//		ImGui::Text("Specular");
+//		ImGui::SameLine();
+//		ImGui::ColorEdit4("Specular", &GameObjVec[selectedGameObj]->specular);
+//
+//		
+//
+//		
+//		
+//	}ImGui::End();
+//
+//}
 void Gui(vector<GameObject*>& GameObjVec) {
 
 	// feed inputs to dear imgui, start new frame
