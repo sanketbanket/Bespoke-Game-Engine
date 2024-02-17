@@ -1,4 +1,4 @@
-#include<Windows.h>
+#include <Windows.h>
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -34,7 +34,7 @@ int selScene = 0;
 
 void processTransformInputs(GLFWwindow* window, int GOAsize, int SelObj, SceneManager sceneManager, int SelScene, Camera scenecam, bool& focus);
 
-void FileExplorerDialog(vector<GameObject*>& GameObjVec) {
+string FileExplorerDialog(vector<GameObject*>& GameObjVec) {
 	// Initialize a structure for the file dialog
 	OPENFILENAME ofn;
 	wchar_t szFile[260] = { 0 }; // Buffer for file name
@@ -59,316 +59,331 @@ void FileExplorerDialog(vector<GameObject*>& GameObjVec) {
 		std::string fileName(len, 0);
 		WideCharToMultiByte(CP_UTF8, 0, ofn.lpstrFile, -1, &fileName[0], len, NULL, NULL);
 		std::cout << "Selected file: " << fileName << std::endl;
-		for (int i = 0; i < size(GameObjVec); i++) {
-			cout << GameObjVec[i]->name;
-		}
-		string objname;
-		cin >> objname;
-		GameObject* newObj = new GameObject(fileName, false, objname);
-		GameObjVec.push_back(newObj);
+		return fileName;
 	}
 	else {
 		std::cout << "No file selected" << std::endl;
+		return "";
 	}
 }
 
-int DisplayObjectListAndGetIndex(vector<GameObject*>& GameObjVec, int& selectedItemIndex) {
-	//int selectedIndex = -1;
+void DeleteObj(int& selectedItemIndex, vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, vector<SunLight*>& suns, vector<ConeLight*>& conevecs){
+	int currsize = 0;
+	if (selectedGameObj >= 0 && selectedItemIndex < GameObjVec.size()) {
+		GameObjVec.erase(GameObjVec.begin() + selectedItemIndex - currsize);
+		return;
+	}
+	currsize += GameObjVec.size();
+	if (selectedGameObj >= currsize && selectedItemIndex < currsize + PointLightVec.size()) {
+		cout << selectedItemIndex << " " << currsize << endl;
+		PointLightVec.erase(PointLightVec.begin() + (selectedItemIndex - currsize));
+		return;
+	}
+	currsize += PointLightVec.size();
+	if (selectedGameObj >= currsize && selectedItemIndex < currsize + suns.size()) {
+		suns.erase(suns.begin() + (selectedItemIndex - currsize));
+		return;
+	}
+	currsize += suns.size();
+	if (selectedGameObj >= currsize) {
+		conevecs.erase(conevecs.begin() + (selectedItemIndex - currsize));
+		return;
+	}
+}
 
+int DisplayObjectListAndGetIndex(int& selectedItemIndex, vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, vector<SunLight*>& suns, vector<ConeLight*>& conevecs) {
+	//int selectedIndex = -1;
+	int currsize = 0;
 	// Display the list of objects
-	for (int i = 0; i < GameObjVec.size(); ++i) {
-		if (ImGui::Selectable(GameObjVec[i]->name.c_str(), selectedItemIndex == i)) {
-			selectedItemIndex = i;
+	if (ImGui::CollapsingHeader("Game Objects"))
+	{
+		for (int i = 0; i < GameObjVec.size(); ++i) {
+			if (ImGui::Selectable(GameObjVec[i]->name.c_str(), selectedItemIndex == i)) {
+				selectedItemIndex = i;
+			}
 		}
 	}
-	if (ImGui::Button("Open File Explorer")) {
-		FileExplorerDialog(GameObjVec);
+	currsize += GameObjVec.size();
+	if (ImGui::CollapsingHeader("Point Lights"))
+	{
+		for (int i = 0; i < PointLightVec.size(); ++i) {
+			if (ImGui::Selectable(PointLightVec[i]->name.c_str(), selectedItemIndex == i + currsize)) {
+				selectedItemIndex = i + currsize;
+			}
+		}
 	}
-	if (ImGui::Button("Delete Selected GameObject")) {
-		GameObjVec.erase(GameObjVec.begin() + selectedItemIndex);
-		selectedItemIndex--;
+	currsize += PointLightVec.size();
+	if (ImGui::CollapsingHeader("Sun Lights"))
+	{
+		for (int i = 0; i < suns.size(); ++i) {
+			if (ImGui::Selectable(suns[i]->name.c_str(), selectedItemIndex == i + currsize)) {
+				selectedItemIndex = i + currsize;
+			}
+		}
+	}
+	currsize += suns.size();
+	if (ImGui::CollapsingHeader("Cone Lights"))
+	{
+		for (int i = 0; i < conevecs.size(); ++i) {
+			if (ImGui::Selectable(conevecs[i]->name.c_str(), selectedItemIndex == i + currsize)) {
+				selectedItemIndex = i + currsize;
+			}
+		}
 	}
 
 	return selectedItemIndex;
 }
-//void ImGuiConeLight() {
-//	ImGui_ImplOpenGL3_NewFrame();
-//	ImGui_ImplGlfw_NewFrame();
-//	ImGui::NewFrame();
-//
-//	// render your GUI
-//
-//	ImGui::SetNextWindowSize(ImVec2(500, 500));
-//	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-//		ImGui::Columns(4);
-//		ImGui::Button("Cone light");   //diffuse,specular,strength,pos,dir,cutoff angle
-//		ImGui::Text("Position");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//
-//		ImGui::NextColumn();
-//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-//
-//		if (ImGui::Button("X", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.x = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Y", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.y = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Z", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.z = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
-//		ImGui::NextColumn();
-//		ImGui::Text("Position");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//
-//		ImGui::NextColumn();
-//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-//
-//		if (ImGui::Button("X", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.x = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Y", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.y = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Z", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.z = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
-//		ImGui::NextColumn();
-//		ImGui::Text("Strength");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//		ImGui::DragFloat("##Strength", &GameObjVec[selectedGameObj]->strength, 0.1);
-//		ImGui::Text("Cutoff angle");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//		ImGui::DragFloat("##Cutoff", &GameObjVec[selectedGameObj]->cutoff, 0.1);
-//		ImGui::Text("Diffuse");
-//		ImGui::SameLine();
-//		ImGui::ColorEdit4("Diffuse", &GameObjVec[selectedGameObj]->diffuse);
-//		ImGui::Text("Specular");
-//		ImGui::SameLine();
-//		ImGui::ColorEdit4("Specular", &GameObjVec[selectedGameObj]->specular);
-//	}ImGui::End();
-//}
-//void ImGuiSunLight() {
-//	ImGui_ImplOpenGL3_NewFrame();
-//	ImGui_ImplGlfw_NewFrame();
-//	ImGui::NewFrame();
-//
-//	// render your GUI
-//
-//	ImGui::SetNextWindowSize(ImVec2(500, 500));
-//	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-//		ImGui::Columns(4);
-//		ImGui::Button("Cone light");   //diffuse,specular,strength,pos,dir
-//		ImGui::Text("Position");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//
-//		ImGui::NextColumn();
-//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-//
-//		if (ImGui::Button("X", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.x = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Y", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.y = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Z", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.z = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
-//		ImGui::NextColumn();
-//		ImGui::Text("Position");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//
-//		ImGui::NextColumn();
-//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-//
-//		if (ImGui::Button("X", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.x = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Y", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.y = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Z", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.z = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
-//		ImGui::NextColumn();
-//		ImGui::Text("Strength");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//		ImGui::DragFloat("##Strength", &GameObjVec[selectedGameObj]->strength, 0.1);
-//
-//		ImGui::Text("Diffuse");
-//		ImGui::SameLine();
-//		ImGui::ColorEdit4("Diffuse", &GameObjVec[selectedGameObj]->diffuse);
-//		ImGui::Text("Specular");
-//		ImGui::SameLine();
-//		ImGui::ColorEdit4("Specular", &GameObjVec[selectedGameObj]->specular);
-//	}ImGui::End();
-//}
-//void ImguiPointLight( ) {  //strength,position,diffuse,specular
-//	ImGui_ImplOpenGL3_NewFrame();
-//	ImGui_ImplGlfw_NewFrame();
-//	ImGui::NewFrame();
-//
-//	// render your GUI
-//	
-//	ImGui::SetNextWindowSize(ImVec2(500, 500));
-//	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-//		ImGui::Columns(4);
-//		//position]
-//		ImGui::Button("Point light");
-//		ImGui::Text("Position");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//
-//		ImGui::NextColumn();
-//		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-//		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
-//
-//		if (ImGui::Button("X", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.x = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Y", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.y = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
-//		ImGui::SameLine();
-//
-//		ImGui::NextColumn();
-//
-//
-//		if (ImGui::Button("Z", buttonSize))
-//			GameObjVec[selectedGameObj]->tvecm.z = 0;
-//
-//
-//		ImGui::SameLine();
-//		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
-//		ImGui::NextColumn();
-//		ImGui::Text("Strength");
-//		ImGui::SameLine();
-//		ImGui::SetColumnWidth(0, 65);
-//		ImGui::DragFloat("##Strength", &GameObjVec[selectedGameObj]->strength, 0.1);
-//		ImGui::Text("Diffuse");
-//		ImGui::SameLine();
-//		ImGui::ColorEdit4("Diffuse", &GameObjVec[selectedGameObj]->diffuse);
-//		ImGui::Text("Specular");
-//		ImGui::SameLine();
-//		ImGui::ColorEdit4("Specular", &GameObjVec[selectedGameObj]->specular);
-//
-//		
-//
-//		
-//		
-//	}ImGui::End();
-//
-//}
-void Gui(vector<GameObject*>& GameObjVec) {
 
-	// feed inputs to dear imgui, start new frame
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplGlfw_NewFrame();
-	ImGui::NewFrame();
+void ImGuiConeLight(vector<ConeLight*>& conevecs, int selection) {
+	// render your GUI
+
+	ImGui::SetNextWindowSize(ImVec2(500, 500));
+	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		ImGui::Columns(4);
+		ImGui::Button("Cone light");   //diffuse,specular,strength,pos,dir,cutoff angle
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+
+		ImGui::NextColumn();
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		if (ImGui::Button("X", buttonSize))
+			conevecs[selection]->Position.x = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X", &conevecs[selection]->Position.x, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Y", buttonSize))
+			conevecs[selection]->Position.y = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y", &conevecs[selection]->Position.y, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Z", buttonSize))
+			conevecs[selection]->Position.z = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z", &conevecs[selection]->Position.z, 0.1);
+		ImGui::NextColumn();
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+
+		ImGui::NextColumn();
+		lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		if (ImGui::Button("X", buttonSize))
+			conevecs[selection]->Position.x = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X", &conevecs[selection]->Position.x, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Y", buttonSize))
+			conevecs[selection]->Position.y = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y", &conevecs[selection]->Position.y, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Z", buttonSize))
+			conevecs[selection]->Position.z = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z", &conevecs[selection]->Position.z, 0.1);
+		ImGui::NextColumn();
+		ImGui::Text("Strength");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+		ImGui::DragFloat("##Strength", &conevecs[selection]->strength, 0.1);
+		ImGui::Text("Cutoff angle");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+		ImGui::DragFloat("##Cutoff", &conevecs[selection]->Cutoff, 0.1);
+
+		ImGui::Text("Diffuse");
+		ImGui::SameLine();
+
+		float myArray[3];
+		float* ptr = reinterpret_cast<float*>(&conevecs[selection]->Diffuse);
+		// Copy memory from vec to array
+		std::memcpy(myArray, ptr, sizeof(glm::vec3));
+
+		ImGui::ColorEdit3("Diffuse", myArray);
+		ImGui::Text("Specular");
+		ImGui::SameLine();
+
+		ptr = reinterpret_cast<float*>(&conevecs[selection]->Specular);
+		// Copy memory from vec to array
+		std::memcpy(myArray, ptr, sizeof(glm::vec3));
+		ImGui::ColorEdit4("Specular", myArray);
+	}ImGui::End();
+}
+void ImGuiSunLight(vector<SunLight*>& suns, int selection) {
+	// render your GUI
+
+	ImGui::SetNextWindowSize(ImVec2(500, 500));
+	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		ImGui::Button("Sun light");   //diffuse,specular,strength,pos,dir
+		ImGui::BeginChild("position", ImVec2(0, ImGui::GetWindowContentRegionMin().y));
+		ImGui::Columns(4);
+
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+
+		ImGui::NextColumn();
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		if (ImGui::Button("X", buttonSize))
+			suns[selection]->Position.x = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X", &suns[selection]->Position.x, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Y", buttonSize))
+			suns[selection]->Position.y = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y", &suns[selection]->Position.y, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Z", buttonSize))
+			suns[selection]->Position.z = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z", &suns[selection]->Position.z, 0.1);
+		ImGui::NextColumn();
+		ImGui::EndChild();
+
+		ImGui::BeginChild("others");
+		ImGui::Columns(2);
+		ImGui::Text("Strength");
+		ImGui::SameLine();
+		ImGui::NextColumn();
+		ImGui::SetColumnWidth(0, 65);
+		ImGui::DragFloat("##Strength", &suns[selection]->strength, 0.1);
+		ImGui::NextColumn();
+
+		ImGui::Text("Diffuse");
+		ImGui::SameLine();
+		ImGui::NextColumn();
+		ImGui::ColorEdit3("##Diffuse", (float*)&suns[selection]->Diffuse);
+		ImGui::NextColumn();
+
+		ImGui::Text("Specular");
+		ImGui::SameLine();
+		ImGui::NextColumn();
+		ImGui::ColorEdit3("##Specular", (float*)&suns[selection]->Specular);
+		ImGui::EndChild();
+	}ImGui::End();
+}
+void ImguiPointLight(vector<PointLight*>& PointLightVec, int selection) {  //strength,position,diffuse,specular
 
 	// render your GUI
-	if (ImGui::Begin("heirarchy", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-		selectedGameObj = DisplayObjectListAndGetIndex(GameObjVec, selectedGameObj);
-	}
-	ImGui::End();
+
+	ImGui::SetNextWindowSize(ImVec2(500, 500));
+	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		ImGui::Button("Point light");
+		ImGui::BeginChild("position",ImVec2(0,ImGui::GetWindowContentRegionMin().y));
+		ImGui::Columns(4);
+		//position]
+		ImGui::Text("Position");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+
+		ImGui::NextColumn();
+		float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
+
+		if (ImGui::Button("X", buttonSize))
+			PointLightVec[selection]->Position.x = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##X", &PointLightVec[selection]->Position.x, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Y", buttonSize))
+			PointLightVec[selection]->Position.y = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Y", &PointLightVec[selection]->Position.y, 0.1);
+		ImGui::SameLine();
+
+		ImGui::NextColumn();
+
+
+		if (ImGui::Button("Z", buttonSize))
+			PointLightVec[selection]->Position.z = 0;
+
+
+		ImGui::SameLine();
+		ImGui::DragFloat("##Z", &PointLightVec[selection]->Position.z, 0.1);
+		ImGui::NextColumn();
+		ImGui::EndChild();
+		ImGui::BeginChild("others");
+		ImGui::Columns(2);
+		ImGui::Text("Strength");
+		ImGui::SameLine();
+		ImGui::SetColumnWidth(0, 65);
+		ImGui::NextColumn();
+		ImGui::DragFloat("##Strength", &PointLightVec[selection]->strength, 0.1);
+		ImGui::NextColumn();
+
+		ImGui::Text("Diffuse");
+		ImGui::SameLine();
+		ImGui::NextColumn();
+		ImGui::ColorEdit3("##Diffuse", (float*)&PointLightVec[selection]->Diffuse);
+		ImGui::NextColumn();
+
+		ImGui::Text("Specular");
+		ImGui::SameLine();
+		ImGui::NextColumn();
+		ImGui::ColorEdit3("##Specular", (float*)&PointLightVec[selection]->Specular);
+		ImGui::EndChild();
+	}ImGui::End();
+
+}
+void ImguiGameObject(vector<GameObject*>& GameObjVec, int selection) {
 	ImGui::SetNextWindowSize(ImVec2(500, 500));
 	if (ImGui::Begin("Transform", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
 		ImGui::Columns(4);
@@ -382,33 +397,33 @@ void Gui(vector<GameObject*>& GameObjVec) {
 		ImVec2 buttonSize = { lineHeight + 3.0f, lineHeight };
 
 		if (ImGui::Button("X", buttonSize))
-			GameObjVec[selectedGameObj]->tvecm.x = 0;
+			GameObjVec[selection]->tvecm.x = 0;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##X", &GameObjVec[selectedGameObj]->tvecm.x, 0.1);
+		ImGui::DragFloat("##X", &GameObjVec[selection]->tvecm.x, 0.1);
 		ImGui::SameLine();
 
 		ImGui::NextColumn();
 
 
 		if (ImGui::Button("Y", buttonSize))
-			GameObjVec[selectedGameObj]->tvecm.y = 0;
+			GameObjVec[selection]->tvecm.y = 0;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Y", &GameObjVec[selectedGameObj]->tvecm.y, 0.1);
+		ImGui::DragFloat("##Y", &GameObjVec[selection]->tvecm.y, 0.1);
 		ImGui::SameLine();
 
 		ImGui::NextColumn();
 
 
 		if (ImGui::Button("Z", buttonSize))
-			GameObjVec[selectedGameObj]->tvecm.z = 0;
+			GameObjVec[selection]->tvecm.z = 0;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Z", &GameObjVec[selectedGameObj]->tvecm.z, 0.1);
+		ImGui::DragFloat("##Z", &GameObjVec[selection]->tvecm.z, 0.1);
 		ImGui::NextColumn();
 		//rotation
 		ImGui::Text("Rotation");
@@ -419,32 +434,32 @@ void Gui(vector<GameObject*>& GameObjVec) {
 
 
 		if (ImGui::Button("X", buttonSize))
-			GameObjVec[selectedGameObj]->xaxisanglem = 0;
+			GameObjVec[selection]->xaxisanglem = 0;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##X_angle", &GameObjVec[selectedGameObj]->xaxisanglem);
+		ImGui::DragFloat("##X_angle", &GameObjVec[selection]->xaxisanglem);
 		ImGui::SameLine();
 
 		ImGui::NextColumn();
 
 
 		if (ImGui::Button("Y", buttonSize))
-			GameObjVec[selectedGameObj]->yaxisanglem = 0;
+			GameObjVec[selection]->yaxisanglem = 0;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Y_angle", &GameObjVec[selectedGameObj]->yaxisanglem);
+		ImGui::DragFloat("##Y_angle", &GameObjVec[selection]->yaxisanglem);
 		ImGui::SameLine();
 
 		ImGui::NextColumn();
 
 		if (ImGui::Button("Z", buttonSize))
-			GameObjVec[selectedGameObj]->zaxisanglem = 0;
+			GameObjVec[selection]->zaxisanglem = 0;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Z_angle", &GameObjVec[selectedGameObj]->zaxisanglem);
+		ImGui::DragFloat("##Z_angle", &GameObjVec[selection]->zaxisanglem);
 		ImGui::NextColumn();
 		//scale
 		ImGui::Text("Scale");
@@ -455,35 +470,81 @@ void Gui(vector<GameObject*>& GameObjVec) {
 
 
 		if (ImGui::Button("X", buttonSize))
-			GameObjVec[selectedGameObj]->svecm.x = 1;
+			GameObjVec[selection]->svecm.x = 1;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##X_scale", &GameObjVec[selectedGameObj]->svecm.x, 0.05);
+		ImGui::DragFloat("##X_scale", &GameObjVec[selection]->svecm.x, 0.05);
 		ImGui::SameLine();
 
 		ImGui::NextColumn();
 
 
 		if (ImGui::Button("Y", buttonSize))
-			GameObjVec[selectedGameObj]->svecm.y = 1;
+			GameObjVec[selection]->svecm.y = 1;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Y_scale", &GameObjVec[selectedGameObj]->svecm.y, 0.05);
+		ImGui::DragFloat("##Y_scale", &GameObjVec[selection]->svecm.y, 0.05);
 		ImGui::SameLine();
 
 		ImGui::NextColumn();
 
 
 		if (ImGui::Button("Z", buttonSize))
-			GameObjVec[selectedGameObj]->svecm.z = 1;
+			GameObjVec[selection]->svecm.z = 1;
 
 
 		ImGui::SameLine();
-		ImGui::DragFloat("##Z_scale", &GameObjVec[selectedGameObj]->svecm.z, 0.05);
+		ImGui::DragFloat("##Z_scale", &GameObjVec[selection]->svecm.z, 0.05);
 	}
 	ImGui::End();
+}
+
+void Gui(vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, vector<SunLight*>& suns, vector<ConeLight*>& conevecs) {
+
+	// feed inputs to dear imgui, start new frame
+	ImGui_ImplOpenGL3_NewFrame();
+	ImGui_ImplGlfw_NewFrame();
+	ImGui::NewFrame();
+
+	// render your GUI
+	if (ImGui::Begin("heirarchy", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+		selectedGameObj = DisplayObjectListAndGetIndex(selectedGameObj, GameObjVec, PointLightVec, suns, conevecs);
+	}
+	if (ImGui::Button("New Game Object")) {
+		string fileName = FileExplorerDialog(GameObjVec);
+		if (fileName != ""){
+			string objname;
+			cout << endl << "Enter Name: ";
+			cin >> objname;
+			GameObject* newObj = new GameObject(fileName, false, objname);
+			GameObjVec.push_back(newObj);
+		}
+	}
+	if (ImGui::Button("Delete Selected GameObject")) {
+		DeleteObj(selectedGameObj, GameObjVec, PointLightVec, suns, conevecs);
+		selectedGameObj--;
+	}
+	ImGui::End();
+	
+	int currsize = 0;
+	if (selectedGameObj >= 0 && selectedGameObj < GameObjVec.size()) {
+		ImguiGameObject(GameObjVec, selectedGameObj - currsize);
+	}
+	currsize += GameObjVec.size();
+	if (selectedGameObj >= currsize && selectedGameObj < currsize + PointLightVec.size()) {
+		ImguiPointLight(PointLightVec, selectedGameObj - currsize);
+	}
+	currsize += PointLightVec.size();
+	if (selectedGameObj >= currsize && selectedGameObj < currsize + suns.size()) {
+		ImGuiSunLight(suns, selectedGameObj - currsize);
+	}
+	currsize += suns.size();
+	if (selectedGameObj >= currsize) {
+		ImGuiConeLight(conevecs, selectedGameObj - currsize);
+	}
+
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
@@ -593,27 +654,7 @@ int main() {
 
 	SceneManager sceneManager;
 
-	/*Scene* scene0 = new Scene;
-	Scene* scene1 = new Scene;
 
-	GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true, "bag");
-	GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false, "rock");
-	GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false, "skull");
-
-	GameObject* bag1 = new GameObject("Models/bag_model/backpack.obj", true, "bag");
-	GameObject* rock1 = new GameObject("Models/basecharacter/funnyrock.obj", false, "rock");
-	GameObject* skull1 = new GameObject("Models/basecharacter/brideskull.obj", false, "skull");
-
-	scene0->addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	scene0->addGameObject(rock, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	scene0->addGameObject(skull, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	
-	scene1->addGameObject(bag1, glm::vec3(2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 0.3f);
-	scene1->addGameObject(rock1, glm::vec3(-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
-	scene1->addGameObject(skull1, glm::vec3(0.0f, 0.0f, 2.0f), 0.0f, 0.0f, 0.0f, 5.0f);
-
-	sceneManager.addScene(scene0);
-	sceneManager.addScene(scene1);*/
 
 	sceneManager.scenes = sl_ins->loading();
 
@@ -633,21 +674,21 @@ int main() {
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (3 * sizeof(float)));  
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*) (6 * sizeof(float)));
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
-	
-	
 
 
-	
+
+
+
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 	//now for the cube
-	
+
 	GLuint cube_vao;
 	glGenVertexArrays(1, &cube_vao);
 	glBindVertexArray(cube_vao);
@@ -669,7 +710,7 @@ int main() {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-	
+
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -701,7 +742,7 @@ int main() {
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	
+
 
 	//floor done
 
@@ -724,7 +765,7 @@ int main() {
 	container_tex.Unbind();
 	container_spectex.Unbind();
 
-	Texture floor_tex("textures/floor_diffuse.jpg",0);
+	Texture floor_tex("textures/floor_diffuse.jpg", 0);
 	floor_tex.Unbind();
 	Texture floor_spectex("textures/floor_specular.jpg", 1);
 	floor_spectex.Unbind();
@@ -736,16 +777,18 @@ int main() {
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glfwSwapBuffers(window);
-	
+
 	//making the lights
-	PointLight point(glm::vec3(5.0f, 1.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f));
-	
-	SunLight sun(glm::vec3(0.0f, -1.0f, 1.0f), 0.0f*glm::vec3(1.0f, 1.0f, 0.8f), 0.0f*glm::vec3(1.0f, 1.0f, 0.8f));
+	PointLight point(glm::vec3(5.0f, 1.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f), "p1");
+
+	SunLight sun(glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f), "s1");
 	vector<SunLight*> suns = {};
 	suns.push_back(&sun);
-	
+
 	vector<PointLight*> pointLights;
 	pointLights.push_back(&point);
+
+	vector<ConeLight*> coneslights = {};
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -767,13 +810,22 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene, scenecam, focus);
+		//processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene, scenecam, focus);
+		if (glfwGetKeyOnce(window, GLFW_KEY_G) == GLFW_PRESS) {
+			focus = !focus;
+			if (focus)
+			{
+				glfwSetCursorPos(window, scenecam.xposMouse, scenecam.yposMouse);
+			}
+			else {
+				//glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
+			}
+			cout << focus;
+		}
 
-		float scale = 1.0f;
-		emissiveShader.Set1f("scale", 1.0f);
 
 		glClearColor(0.2f, 0.0f, 0.2f, 1.0f);
-		
+
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		scenecam.GetKeyInputs(window, 0.05f, focus);
 		glm::mat4 model = glm::mat4(1.0f);
@@ -783,25 +835,25 @@ int main() {
 		glm::vec3 light_translation = glm::vec3(0.0f, 2.0f, 2.0f);
 		glUniformMatrix4fv(modelID_2, 1, GL_FALSE, glm::value_ptr(glm::translate(model, light_translation)));
 
-		
+
 		glUniformMatrix4fv(transformID_2, 1, GL_FALSE, glm::value_ptr(transform));
-		
+
 		glBindVertexArray(vao);
-	
+
 		glm::vec3 light_pos = glm::vec3(0.0f) + light_translation;
 		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
 
 		//drawing the square
-		
-		
+
+
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		emissiveShader.Setmat4("model", glm::translate(model, glm::vec3(0.0f, 4.0f, -4.0f)));
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 
 		RenderLights(emissiveShader, pointLights, suns);
 
-		
+
 		diffuseShader.Activate();
 
 		container_tex.Bind();
@@ -819,7 +871,7 @@ int main() {
 		//diffuseShader.Setvec3("Points[0].diffuse", point.Diffuse);
 		//diffuseShader.Setvec3("Points[0].specular", point.Specular);
 		//ApplyPointToShader(diffuseShader, point, 0);
-		PassPointsToShader(diffuseShader, pointLights); 
+		PassPointsToShader(diffuseShader, pointLights);
 		PassSunsToShader(diffuseShader, suns);
 
 
@@ -832,13 +884,13 @@ int main() {
 		diffuseShader.Setvec3("cameraPos", scenecam.Position);
 		diffuseShader.Setvec3("lightColor", light_color);
 		diffuseShader.Setvec3("lightpos", light_pos);
-		
-		
-		
+
+
+
 		diffuseShader.Set1f("tmaterial.shine", 64.0f);
 		//animating the cube a bit;
 
-		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time* 20.0), glm::vec3(1.0f, 0.0f, 0.5f)));
+		diffuseShader.Setmat4("model", glm::rotate(model, (float)glm::radians(time * 20.0), glm::vec3(1.0f, 0.0f, 0.5f)));
 
 		glBindVertexArray(cube_vao);    //drawing the cube
 		glUniformMatrix4fv(transformID, 1, GL_FALSE, glm::value_ptr(transform));
@@ -850,21 +902,21 @@ int main() {
 		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(0.0f, 0.0f, 2.0f)));
 		glDrawElements(GL_TRIANGLES, sizeof(cube_indices) / sizeof(int), GL_UNSIGNED_INT, 0);
 		//drawing the floor
-		
+
 		glBindVertexArray(floor_vao);
-		
+
 		diffuseShader.Setmat4("model", glm::translate(model, glm::vec3(0.0f, -1.0f, 0.0f)) * glm::scale(model, glm::vec3(20.0f)));
-		
+
 		floor_tex.Bind();
 		floor_spectex.Bind();
 		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
-		
+
 		sceneManager.switchToScene(selScene);
 		sceneManager.renderCurrentScene(diffuseShader);
-		
+
 		if (!focus)
 		{
-			Gui(sceneManager.scenes[selScene]->gameObjects);
+			Gui(sceneManager.scenes[selScene]->gameObjects, pointLights, suns, coneslights);
 		}
 		if (glfwGetKeyOnce(window, GLFW_KEY_U) == GLFW_PRESS)
 		{
@@ -875,7 +927,7 @@ int main() {
 				cout << "scene2GOnames" << sceneManager.scenes[1]->gameObjects[i]->name << endl;
 			}
 		}
-		
+
 
 
 		glfwSwapBuffers(window);
@@ -931,7 +983,7 @@ void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneMa
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_Q) == GLFW_PRESS)
 	{
-		GameObject* x = new GameObject("Models/cwire/sword.obj", false,"sword");
+		GameObject* x = new GameObject("Models/cwire/sword.obj", false, "sword");
 		sceneManager.scenes[sceneManager.currentSceneIndex]->addGameObject(x);
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_G) == GLFW_PRESS) {
