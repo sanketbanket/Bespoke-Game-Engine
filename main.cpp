@@ -21,6 +21,7 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <imgui_internal.h>
+#include <imgui/misc/cpp/imgui_stdlib.h>
 #pragma comment(lib, "OpenGL32.lib")
 
 char keyOnce[GLFW_KEY_LAST + 1];
@@ -29,8 +30,9 @@ char keyOnce[GLFW_KEY_LAST + 1];
 	 (keyOnce[KEY] ? false : (keyOnce[KEY] = true)) :	\
 	 (keyOnce[KEY] = false))
 
-int selectedGameObj = 0;
+int selectedGameObj = -1;
 int selScene = 0;
+string objname;string fileName;
 
 void processTransformInputs(GLFWwindow* window, int GOAsize, int SelObj, SceneManager sceneManager, int SelScene, Camera scenecam, bool& focus);
 
@@ -58,8 +60,27 @@ string FileExplorerDialog(vector<GameObject*>& GameObjVec) {
 		int len = WideCharToMultiByte(CP_UTF8, 0, ofn.lpstrFile, -1, NULL, 0, NULL, NULL);
 		std::string fileName(len, 0);
 		WideCharToMultiByte(CP_UTF8, 0, ofn.lpstrFile, -1, &fileName[0], len, NULL, NULL);
-		std::cout << "Selected file: " << fileName << std::endl;
-		return fileName;
+		filesystem::path absPath(fileName);
+		filesystem::path currPath = filesystem::current_path();
+		// Find common root directory
+		auto absIter = absPath.begin();
+		auto currIter = currPath.begin();
+		while (absIter != absPath.end() && currIter != currPath.end() && *absIter == *currIter) {
+			++absIter;
+			++currIter;
+		}
+
+		// Construct relative path
+		filesystem::path relativePath;
+		for (; currIter != currPath.end(); ++currIter) {
+			relativePath /= "..";
+		}
+		for (; absIter != absPath.end(); ++absIter) {
+			relativePath /= *absIter;
+		}
+
+		std::cout << "Selected file: " << fileName <<" relative"<<relativePath.string()<< std::endl;
+		return relativePath.string();
 	}
 	else {
 		std::cout << "No file selected" << std::endl;
@@ -67,50 +88,97 @@ string FileExplorerDialog(vector<GameObject*>& GameObjVec) {
 	}
 }
 
-void DeleteObj(int& selectedItemIndex, vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, vector<SunLight*>& suns, vector<ConeLight*>& conevecs, vector<Scene*>& scenes){
+
+void DeleteObj(int selectedItemIndex, vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, vector<SunLight*>& suns, vector<ConeLight*>& conevecs, vector<Scene*>& scenes) {
 	int currsize = 0;
-	if (selectedGameObj >= 0 && selectedItemIndex < GameObjVec.size()) {
-		delete(GameObjVec[selectedItemIndex - currsize]);
-		GameObjVec.erase(GameObjVec.begin() + selectedItemIndex - currsize);
+
+	if (selectedItemIndex >= currsize && selectedItemIndex < GameObjVec.size()) {
+		GameObjVec.erase(GameObjVec.begin() + selectedItemIndex);
 		return;
 	}
+
 	currsize += GameObjVec.size();
-	if (selectedGameObj >= currsize && selectedItemIndex < currsize + PointLightVec.size()) {
-		cout << selectedItemIndex << " " << currsize << endl;
-		delete(PointLightVec[selectedItemIndex - currsize]);
+
+	if (selectedItemIndex >= currsize && selectedItemIndex < currsize + PointLightVec.size()) {
 		PointLightVec.erase(PointLightVec.begin() + (selectedItemIndex - currsize));
 		return;
 	}
+
 	currsize += PointLightVec.size();
-	if (selectedGameObj >= currsize && selectedItemIndex < currsize + suns.size()) {
-		delete(suns[selectedItemIndex - currsize]);
+
+	if (selectedItemIndex >= currsize && selectedItemIndex < currsize + suns.size()) {
 		suns.erase(suns.begin() + (selectedItemIndex - currsize));
 		return;
 	}
+
 	currsize += suns.size();
-	if (selectedGameObj >= currsize && selectedItemIndex < currsize + conevecs.size()) {
-		delete(conevecs[selectedItemIndex - currsize]);
+
+	if (selectedItemIndex >= currsize && selectedItemIndex < currsize + conevecs.size()) {
 		conevecs.erase(conevecs.begin() + (selectedItemIndex - currsize));
 		return;
 	}
-	currsize += conevecs.size();
-	if (selectedGameObj >= currsize) {
-		delete(scenes[selectedItemIndex - currsize]);
-		scenes.erase(scenes.begin() + (selectedItemIndex - currsize));
-		return;
+}
+
+void AddGameObj(vector<GameObject*>& GameObjVec) {
+	if (ImGui::Button("+")) {
+		fileName = FileExplorerDialog(GameObjVec);
+		if (fileName != "") {
+			objname = "";
+			ImGui::OpenPopup("NewObject");
+		}
 	}
-	currsize += scenes.size();
+	// Always center this window when appearing
+	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+	if (ImGui::BeginPopupModal("NewObject", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("FilePath: %s", fileName.c_str());
+		ImGui::InputText("Enter Name ", &objname);
+		if (objname == "")
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Please Enter a Name");
+		}
+		if (ImGui::Button("Ok", ImVec2(120, 0)))
+		{
+			if (objname != "")
+			{
+				GameObject* newObj = new GameObject(fileName, false, objname);
+				GameObjVec.push_back(newObj);
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+		ImGui::EndPopup();
+	}
 }
 
 int DisplayObjectListAndGetIndex(int& selectedItemIndex, vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, vector<SunLight*>& suns, vector<ConeLight*>& conevecs, vector<Scene*>& scenes) {
 	//int selectedIndex = -1;
+	char buf[64];
 	int currsize = 0;
 	// Display the list of objects
-	if (ImGui::CollapsingHeader("Game Objects"))
+	bool op=ImGui::CollapsingHeader("Game Objects");
+	ImGui::SameLine(ImGui::GetWindowWidth() - 30);
+	//ImGui::AlignTextToFramePadding();
+	AddGameObj(GameObjVec);
+	if (op)
 	{
 		for (int i = 0; i < GameObjVec.size(); ++i) {
 			if (ImGui::Selectable(GameObjVec[i]->name.c_str(), selectedItemIndex == i)) {
 				selectedItemIndex = i;
+			}
+			if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
+			{
+				selectedItemIndex = i + currsize;
+				sprintf_s(buf, "Delete Game Object: %s", GameObjVec[i]->name.c_str());
+				if (ImGui::Button(buf)) {
+					DeleteObj(selectedItemIndex, GameObjVec, PointLightVec, suns, conevecs, scenes);
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
 			}
 		}
 	}
@@ -121,6 +189,16 @@ int DisplayObjectListAndGetIndex(int& selectedItemIndex, vector<GameObject*>& Ga
 			if (ImGui::Selectable(PointLightVec[i]->name.c_str(), selectedItemIndex == i + currsize)) {
 				selectedItemIndex = i + currsize;
 			}
+			if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
+			{
+				selectedItemIndex = i + currsize;
+				sprintf_s(buf, "Delete Point Light: %s", PointLightVec[i]->name.c_str());
+				if (ImGui::Button(buf)) {
+					DeleteObj(selectedItemIndex, GameObjVec, PointLightVec, suns, conevecs, scenes);
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
+			}
 		}
 	}
 	currsize += PointLightVec.size();
@@ -129,6 +207,16 @@ int DisplayObjectListAndGetIndex(int& selectedItemIndex, vector<GameObject*>& Ga
 		for (int i = 0; i < suns.size(); ++i) {
 			if (ImGui::Selectable(suns[i]->name.c_str(), selectedItemIndex == i + currsize)) {
 				selectedItemIndex = i + currsize;
+			}
+			if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
+			{
+				selectedItemIndex = i + currsize;
+				sprintf_s(buf, "Delete Sun Light: %s", suns[i]->name.c_str());
+				if (ImGui::Button(buf)) {
+					DeleteObj(selectedItemIndex, GameObjVec, PointLightVec, suns, conevecs, scenes);
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
 			}
 		}
 	}
@@ -139,20 +227,47 @@ int DisplayObjectListAndGetIndex(int& selectedItemIndex, vector<GameObject*>& Ga
 			if (ImGui::Selectable(conevecs[i]->name.c_str(), selectedItemIndex == i + currsize)) {
 				selectedItemIndex = i + currsize;
 			}
-		}
-	}
-	currsize += conevecs.size();
-	if (ImGui::CollapsingHeader("Scenes"))
-	{
-		for (int i = 0; i < scenes.size(); ++i) {
-			if (ImGui::Selectable(to_string(i).c_str(), selectedItemIndex == i + currsize)) {
+			if (ImGui::BeginPopupContextItem()) // <-- use last item id as popup id
+			{
 				selectedItemIndex = i + currsize;
+				sprintf_s(buf, "Delete Cone Light: %s", conevecs[i]->name.c_str());
+				if (ImGui::Button(buf)) {
+					DeleteObj(selectedItemIndex, GameObjVec, PointLightVec, suns, conevecs, scenes);
+					ImGui::CloseCurrentPopup();
+				}
+				ImGui::EndPopup();
 			}
 		}
 	}
-	currsize += scenes.size();
 
 	return selectedItemIndex;
+}
+void AddPointPopup(vector<PointLight*>& PointLightVec) {
+	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+	if (ImGui::BeginPopupModal("NewPoint", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::InputText("Enter Name ", &objname);
+		if (objname == "")
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Please Enter a Name");
+		}
+		if (ImGui::Button("Ok", ImVec2(120, 0)))
+		{
+			if (objname != "")
+			{
+				PointLight* p_temp = new PointLight(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f), glm::vec3(1.0f), objname);
+				PointLightVec.push_back(p_temp);
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+		ImGui::EndPopup();
+	}
+
 }
 
 void ImGuiConeLight(vector<ConeLight*>& conevecs, int selection) {
@@ -160,8 +275,10 @@ void ImGuiConeLight(vector<ConeLight*>& conevecs, int selection) {
 
 	ImGui::SetNextWindowSize(ImVec2(500, 500));
 	if (ImGui::Begin("Light Properties", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
-		ImGui::Columns(4);
 		ImGui::Button("Cone light");   //diffuse,specular,strength,pos,dir,cutoff angle
+		ImGui::BeginChild("position", ImVec2(0, ImGui::GetWindowContentRegionMin().y*2));
+		ImGui::Columns(4);
+
 		ImGui::Text("Position");
 		ImGui::SameLine();
 		ImGui::SetColumnWidth(0, 65);
@@ -199,68 +316,60 @@ void ImGuiConeLight(vector<ConeLight*>& conevecs, int selection) {
 		ImGui::SameLine();
 		ImGui::DragFloat("##Z", &conevecs[selection]->Position.z, 0.1);
 		ImGui::NextColumn();
-		ImGui::Text("Position");
+
+		ImGui::Text("Direction");
 		ImGui::SameLine();
 		ImGui::SetColumnWidth(0, 65);
-
 		ImGui::NextColumn();
-		lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-		buttonSize = { lineHeight + 3.0f, lineHeight };
 
 		if (ImGui::Button("X", buttonSize))
-			conevecs[selection]->Position.x = 0;
-
-
+			conevecs[selection]->Direction.x = 0;
 		ImGui::SameLine();
-		ImGui::DragFloat("##X", &conevecs[selection]->Position.x, 0.1);
+		ImGui::DragFloat("##X_angle", &conevecs[selection]->Direction.x, 0.01);
 		ImGui::SameLine();
-
 		ImGui::NextColumn();
-
 
 		if (ImGui::Button("Y", buttonSize))
-			conevecs[selection]->Position.y = 0;
-
-
+			conevecs[selection]->Direction.y = 0;
 		ImGui::SameLine();
-		ImGui::DragFloat("##Y", &conevecs[selection]->Position.y, 0.1);
+		ImGui::DragFloat("##Y_angle", &conevecs[selection]->Direction.y, 0.01);
 		ImGui::SameLine();
-
 		ImGui::NextColumn();
-
 
 		if (ImGui::Button("Z", buttonSize))
-			conevecs[selection]->Position.z = 0;
-
-
+			conevecs[selection]->Direction.z = 0;
 		ImGui::SameLine();
-		ImGui::DragFloat("##Z", &conevecs[selection]->Position.z, 0.1);
+		ImGui::DragFloat("##Z_angle", &conevecs[selection]->Direction.z, 0.01);
 		ImGui::NextColumn();
+		ImGui::EndChild();
+
+		ImGui::BeginChild("others");
+		ImGui::Columns(2);
 		ImGui::Text("Strength");
 		ImGui::SameLine();
+		ImGui::NextColumn();
 		ImGui::SetColumnWidth(0, 65);
 		ImGui::DragFloat("##Strength", &conevecs[selection]->strength, 0.1);
+		ImGui::NextColumn();
+
 		ImGui::Text("Cutoff angle");
 		ImGui::SameLine();
-		ImGui::SetColumnWidth(0, 65);
+		ImGui::NextColumn();
 		ImGui::DragFloat("##Cutoff", &conevecs[selection]->Cutoff, 0.1);
+		ImGui::NextColumn();
 
 		ImGui::Text("Diffuse");
 		ImGui::SameLine();
+		ImGui::NextColumn();
+		ImGui::ColorEdit3("##Diffuse", (float*)&conevecs[selection]->Diffuse);
+		ImGui::NextColumn();
 
-		float myArray[3];
-		float* ptr = reinterpret_cast<float*>(&conevecs[selection]->Diffuse);
-		// Copy memory from vec to array
-		std::memcpy(myArray, ptr, sizeof(glm::vec3));
-
-		ImGui::ColorEdit3("Diffuse", myArray);
 		ImGui::Text("Specular");
 		ImGui::SameLine();
-
-		ptr = reinterpret_cast<float*>(&conevecs[selection]->Specular);
-		// Copy memory from vec to array
-		std::memcpy(myArray, ptr, sizeof(glm::vec3));
-		ImGui::ColorEdit4("Specular", myArray);
+		ImGui::NextColumn();
+		ImGui::ColorEdit3("##Specular", (float*)&conevecs[selection]->Specular);
+		ImGui::EndChild();
+		
 	}ImGui::End();
 }
 void ImGuiSunLight(vector<SunLight*>& suns, int selection) {
@@ -521,7 +630,6 @@ void ImguiGameObject(vector<GameObject*>& GameObjVec, int selection) {
 	}
 	ImGui::End();
 }
-
 void Gui(vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, vector<SunLight*>& suns, vector<ConeLight*>& conevecs, vector<Scene*>& scenes) {
 
 	// feed inputs to dear imgui, start new frame
@@ -534,19 +642,43 @@ void Gui(vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, ve
 		selectedGameObj = DisplayObjectListAndGetIndex(selectedGameObj, GameObjVec, PointLightVec, suns, conevecs, scenes);
 	}
 	if (ImGui::Button("New Game Object")) {
-		string fileName = FileExplorerDialog(GameObjVec);
-		if (fileName != ""){
-			string objname;
-			cout << endl << "Enter Name: ";
-			cin >> objname;
-			GameObject* newObj = new GameObject(fileName, false, objname);
-			GameObjVec.push_back(newObj);
+		fileName = FileExplorerDialog(GameObjVec);
+		if (fileName != "") {
+			objname = "";
+			ImGui::OpenPopup("NewObject1");
 		}
 	}
-	if (ImGui::Button("Delete Selected GameObject")) {
+	// Always center this window when appearing
+	ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+	ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+	if (ImGui::BeginPopupModal("NewObject1", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+	{
+		ImGui::Text("FilePath: %s", fileName.c_str());
+		ImGui::InputText("Enter Name ", &objname);
+		if (objname == "")
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), "Please Enter a Name");
+		}
+		if (ImGui::Button("Ok", ImVec2(120, 0)))
+		{
+			if (objname != "")
+			{
+				GameObject* newObj = new GameObject(fileName, false, objname);
+				GameObjVec.push_back(newObj);
+				ImGui::CloseCurrentPopup();
+			}
+		}
+		ImGui::SetItemDefaultFocus();
+		ImGui::SameLine();
+		if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+		ImGui::EndPopup();
+	}
+
+	/*if (ImGui::Button("Delete Selected GameObject")) {
 		DeleteObj(selectedGameObj, GameObjVec, PointLightVec, suns, conevecs, scenes);
 		selectedGameObj--;
-	}
+	}*/
 	if (ImGui::Button("Add Scene")) {
 		Scene* scene1 = new Scene;
 		scenes.push_back(scene1);
@@ -554,6 +686,19 @@ void Gui(vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, ve
 	if (ImGui::Button("Next Scene")) {
 		selScene++;
 		if (selScene >= scenes.size()) selScene = 0;
+	}
+	if (ImGui::Button("Add Point Light")) {
+		objname = "";
+		ImGui::OpenPopup("NewPoint");
+	}
+	AddPointPopup(PointLightVec);
+	if (ImGui::Button("Add Sun Light")) {
+		SunLight* stemp = new SunLight(glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), "s");
+		suns.push_back(stemp);
+	}
+	if (ImGui::Button("Add Cone Light")) {
+		ConeLight* ctemp = new ConeLight(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), 20.0f, glm::vec3(1.0f, 1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 1.0f), "c");
+		conevecs.push_back(ctemp);
 	}
 	ImGui::End();
 	
@@ -567,19 +712,12 @@ void Gui(vector<GameObject*>& GameObjVec, vector<PointLight*>& PointLightVec, ve
 	}
 	currsize += PointLightVec.size();
 	if (selectedGameObj >= currsize && selectedGameObj < currsize + suns.size()) {
-		cout << " " << selectedGameObj - currsize << " " << selectedGameObj << " " << currsize << endl;
 		ImGuiSunLight(suns, selectedGameObj - currsize);
 	}
 	currsize += suns.size();
 	if (selectedGameObj >= currsize && selectedGameObj < currsize + conevecs.size()) {
 		ImGuiConeLight(conevecs, selectedGameObj - currsize);
 	}
-	currsize += conevecs.size();
-	if (selectedGameObj >= currsize) {
-		cout << " " << selectedGameObj - currsize << " " << selectedGameObj << " " << currsize << endl;
-		selScene = selectedGameObj - currsize;
-	}
-	currsize += scenes.size();
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -619,6 +757,26 @@ int main() {
 
 	SceneManager sceneManager;
 	sceneManager.scenes = sl_ins->loading();
+	//Scene* scene0 = new Scene;
+	//Scene* scene1 = new Scene;
+
+	//GameObject* bag = new GameObject("Models/bag_model/backpack.obj", true, "bag");
+	//GameObject* rock = new GameObject("Models/basecharacter/funnyrock.obj", false, "rock");
+	//GameObject* skull = new GameObject("Models/basecharacter/brideskull.obj", false, "skull");
+	//GameObject* bag1 = new GameObject("Models/bag_model/backpack.obj", true, "bag");
+	//GameObject* rock1 = new GameObject("Models/basecharacter/funnyrock.obj", false, "rock");
+	//GameObject* skull1 = new GameObject("Models/basecharacter/brideskull.obj", false, "skull");
+
+	//scene0->addGameObject(bag, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	//scene0->addGameObject(rock, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	//scene0->addGameObject(skull, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	//scene1->addGameObject(bag1, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	//scene1->addGameObject(rock1, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+	//scene1->addGameObject(skull1, glm::vec3(0.0f, 0.0f, 0.0f), 0.0f, 0.0f, 0.0f, 1.0f);
+
+	//sceneManager.addScene(scene0);
+	//sceneManager.addScene(scene1);
 
 	float ambience = 0.0f;  //define the ambient light strength
 	glm::vec3 ambient_light(1.0f, 1.0f, 1.0f);  //ambient light color
@@ -633,7 +791,7 @@ int main() {
 	GLuint modelID = glGetUniformLocation(diffuseShader.ID, "model");     //grab the model and the camera transform matrices
 	GLuint transformID = glGetUniformLocation(diffuseShader.ID, "cameraMatrix");
 
-	Camera scenecam(glm::vec3(0.0f, 0.0f, -5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, (float)(width) / height, 0.1f, 100.0f);  //creating the camera
+	Camera scenecam(glm::vec3(0.0f, 0.0f, 5.0f), glm::vec3(0.0f, 0.0f, 0.0f), 45.0f, (float)(width) / height, 0.1f, 100.0f);  //creating the camera
 	glEnable(GL_DEPTH_TEST);
 	glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
@@ -641,15 +799,21 @@ int main() {
 	glfwSwapBuffers(window);
 
 	//making the lights
-	PointLight point(glm::vec3(5.0f, 1.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f), "p1");
-	vector<PointLight*> pointLights = {};
-	pointLights.push_back(&point);
+	//PointLight point(glm::vec3(5.0f, 1.0f, 5.0f), glm::vec3(1.0f), glm::vec3(1.0f), "p1");
+	//vector<PointLight*> pointLights = {};
+	//pointLights.push_back(&point);
 
-	SunLight sun(glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f), "s1");
-	vector<SunLight*> suns = {};
-	suns.push_back(&sun);
+	//SunLight sun(glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f), "s1");
+	//vector<SunLight*> sunLights = {};
+	//sunLights.push_back(&sun);
 
-	vector<ConeLight*> coneslights = {};
+	//ConeLight cone(glm::vec3(0.0f, -1.0f, 1.0f), glm::vec3(0.0f, 0.0f, 1.0f), 20.0f, glm::vec3(1.0f, 1.0f, 0.8f), glm::vec3(1.0f, 1.0f, 0.8f), "c1");
+	//vector<ConeLight*> coneLights = {};
+	//coneLights.push_back(&cone);
+
+	//sceneManager.scenes[0]->points = pointLights;
+	//sceneManager.scenes[0]->suns = sunLights;
+	//sceneManager.scenes[0]->cones = coneLights;
 
 	// Setup Dear ImGui context
 	IMGUI_CHECKVERSION();
@@ -671,18 +835,8 @@ int main() {
 		float time = 0.0f;
 
 		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) { break; }   //setting up the close window button
-		//processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene, scenecam, focus);
-		if (glfwGetKeyOnce(window, GLFW_KEY_G) == GLFW_PRESS) {
-			focus = !focus;
-			if (focus)
-			{
-				glfwSetCursorPos(window, scenecam.xposMouse, scenecam.yposMouse);
-			}
-			else {
-				//glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
-			}
-			cout << focus;
-		}
+		processTransformInputs(window, size(sceneManager.scenes[selScene]->gameObjects), selectedGameObj, sceneManager, selScene, scenecam, focus);
+		
 
 		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -700,7 +854,7 @@ int main() {
 		glm::vec3 light_pos = glm::vec3(0.0f) + light_translation;
 		glm::vec3 light_color = glm::vec3(1.0f, 1.0f, 1.0f);
 
-		RenderLights(emissiveShader, pointLights, suns);
+		//RenderLights(emissiveShader, pointLights, suns, coneslights);
 
 		diffuseShader.Activate();
 
@@ -711,8 +865,9 @@ int main() {
 		diffuseShader.Setvec3("material.specular", glm::vec3(0.5f, 0.5f, 0.5f));
 		diffuseShader.Set1f("material.shine", 32.0f);
 
-		PassPointsToShader(diffuseShader, pointLights);
-		PassSunsToShader(diffuseShader, suns);
+		PassPointsToShader(diffuseShader, sceneManager.scenes[selScene]->points);
+		PassSunsToShader(diffuseShader, sceneManager.scenes[selScene]->suns);
+		PassConesToShader(diffuseShader, sceneManager.scenes[selScene]->cones);
 
 		GLuint lightID = glGetUniformLocation(diffuseShader.ID, "light_color");
 		GLuint colorID = glGetUniformLocation(diffuseShader.ID, "mycolor");
@@ -725,12 +880,13 @@ int main() {
 
 		glUniformMatrix4fv(transformID, 1, GL_FALSE, glm::value_ptr(transform));
 
+		// Rendering Current Scene
 		sceneManager.switchToScene(selScene);
-		sceneManager.renderCurrentScene(diffuseShader);
+		sceneManager.renderCurrentScene(diffuseShader, emissiveShader);
 
 		if (!focus)
 		{
-			Gui(sceneManager.scenes[selScene]->gameObjects, pointLights, suns, coneslights, sceneManager.scenes);
+			Gui(sceneManager.scenes[selScene]->gameObjects, sceneManager.scenes[selScene]->points, sceneManager.scenes[selScene]->suns, sceneManager.scenes[selScene]->cones, sceneManager.scenes);
 		}
 
 		glfwSwapBuffers(window);
@@ -756,7 +912,7 @@ int main() {
 
 void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneManager sceneManager, int SelScene, Camera scenecam, bool& focus)
 {
-	GameObject* selectedGO = sceneManager.scenes[sceneManager.currentSceneIndex]->gameObjects[SelObj];
+	/*GameObject* selectedGO = sceneManager.scenes[sceneManager.currentSceneIndex]->gameObjects[SelObj];
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS) { selectedGO->tvecm[1] = selectedGO->tvecm[1] + 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS) { selectedGO->tvecm[1] = selectedGO->tvecm[1] - 0.03f; }
 	if (glfwGetKey(window, GLFW_KEY_T) == GLFW_PRESS and glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS) { selectedGO->tvecm[0] = selectedGO->tvecm[0] + 0.03f; }
@@ -773,7 +929,7 @@ void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneMa
 	{
 		selectedGameObj++;
 		if (selectedGameObj >= GOVsize) selectedGameObj = 0;
-	}
+	}*/
 	if (glfwGetKeyOnce(window, GLFW_KEY_1) == GLFW_PRESS and focus)
 	{
 		selectedGameObj = 0;
@@ -786,11 +942,18 @@ void processTransformInputs(GLFWwindow* window, int GOVsize, int SelObj, SceneMa
 	}
 	if (glfwGetKeyOnce(window, GLFW_KEY_G) == GLFW_PRESS) {
 		focus = !focus;
-		if (focus)
+		if (focus==true)
 		{
+			cout << "focus on"<<endl;
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			glfwSetCursorPos(window, scenecam.xposMouse, scenecam.yposMouse);
 		}
 		else {
+			cout << "focus off"<<endl;
+			glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			int width, height;
+			glfwGetWindowSize(window,&width, &height);
+			glfwSetCursorPos(window, width/2, height/2);
 			//glfwSetCursorPos(window, 1920 / 2, 1080 / 2);
 		}
 		cout << focus;

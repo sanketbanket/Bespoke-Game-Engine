@@ -69,6 +69,9 @@
     <ClCompile Include="libraries\include\imgui\backends\imgui_impl_opengl3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="libraries\include\imgui\misc\cpp\imgui_stdlib.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image.h">
@@ -136,6 +139,9 @@
     </ClInclude>
     <ClInclude Include="libraries\include\imgui\backends\imgui_impl_opengl3_loader.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libraries\include\imgui\misc\cpp\imgui_stdlib.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

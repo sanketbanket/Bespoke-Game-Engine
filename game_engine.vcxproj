@@ -33,6 +33,7 @@
     <ClCompile Include="libraries\include\imgui\imgui_draw.cpp" />
     <ClCompile Include="libraries\include\imgui\imgui_tables.cpp" />
     <ClCompile Include="libraries\include\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="libraries\include\imgui\misc\cpp\imgui_stdlib.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="stb.cpp" />
   </ItemGroup>
@@ -58,6 +59,7 @@
     <ClInclude Include="libraries\include\imgui\imstb_rectpack.h" />
     <ClInclude Include="libraries\include\imgui\imstb_textedit.h" />
     <ClInclude Include="libraries\include\imgui\imstb_truetype.h" />
+    <ClInclude Include="libraries\include\imgui\misc\cpp\imgui_stdlib.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>

@@ -1,7 +1,5 @@
 #version 330 core
 
-
-
 uniform vec3 ambience;
 
 in vec3 normal;		//mesh normal vector

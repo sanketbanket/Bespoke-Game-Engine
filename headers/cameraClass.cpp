@@ -103,38 +103,33 @@ void Camera::GetKeyInputs(GLFWwindow* window, float velocity, bool focus) {     
 	{
 		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 		ghetto_Mouse_Callback(window);
-	}
-	else {
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-	}
-	//glfwSetCursorPosCallback(window, mouseCallback);
-
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
-		view = translate(mat4(1.0f), -fake_up * velocity) * view;
-		Position += velocity * vec3(0.0f, 1.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
-		view = translate(mat4(1.0f), fake_up * velocity) * view;
-		Position += velocity * vec3(0.0f, -1.0f, 0.0f);
-	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-		view = translate(mat4(1.0f), -fake_right * velocity) * view;
-		Position += -velocity * local_right;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-		view = translate(mat4(1.0f), fake_right * velocity) * view;
-		Position += velocity * local_right;
-	}
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-		view = translate(mat4(1.0f), -front * velocity) * view;
-		Position += velocity * normalize(Orientation);
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-		view = translate(mat4(1.0f), front * velocity) * view;
-		Position += -velocity * normalize(Orientation);
-	}
-	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
-		std::cout << "CAMERA POSITION : " << Position.x << '\\' << Position.y << '\\' << Position.z << std::endl;
+		if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+			view = translate(mat4(1.0f), -fake_up * velocity) * view;
+			Position += velocity * vec3(0.0f, 1.0f, 0.0f);
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS) {
+			view = translate(mat4(1.0f), fake_up * velocity) * view;
+			Position += velocity * vec3(0.0f, -1.0f, 0.0f);
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+			view = translate(mat4(1.0f), -fake_right * velocity) * view;
+			Position += -velocity * local_right;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+			view = translate(mat4(1.0f), fake_right * velocity) * view;
+			Position += velocity * local_right;
+		}
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+			view = translate(mat4(1.0f), -front * velocity) * view;
+			Position += velocity * normalize(Orientation);
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+			view = translate(mat4(1.0f), front * velocity) * view;
+			Position += -velocity * normalize(Orientation);
+		}
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_2) == GLFW_PRESS) {
+			std::cout << "CAMERA POSITION : " << Position.x << '\\' << Position.y << '\\' << Position.z << std::endl;
+		}
 	}
 	
 	

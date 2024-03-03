@@ -23,6 +23,7 @@ public:
 	glm::vec3 Diffuse = glm::vec3(0.0f);
 	glm::vec3 Specular = glm::vec3(0.0f);
 	Model* display = new Model("models/Lights/PointLight.obj");
+	PointLight() {}
 	PointLight(glm::vec3 pos, glm::vec3 diff, glm::vec3 spec, string na) {
 		Position = pos;
 		Diffuse = glm::normalize(diff);
@@ -37,6 +38,34 @@ public:
 		shader.Setmat4("model", model);
 		display->Draw(shader);
 	}
+
+	std::vector<float> get_location() {
+		std::vector<float> return_pose{};
+		for (int i{}; i < 3; i++) {
+			return_pose.push_back(this->Position[i]);
+		}
+		for (int i{ 3 }; i < 6; i++) {
+			return_pose.push_back(this->Diffuse[i - 3]);
+		}
+		for (int i{ 6 }; i < 9; i++) {
+			return_pose.push_back(this->Specular[i - 6]);
+		}
+		return_pose.push_back(this->strength);
+		return return_pose;
+	}
+	void set_location(std::vector<float>& input_pose) {
+		for (int i{}; i < 3; i++) {
+			this->Position[i] = input_pose[i];
+		}
+		for (int i{ 3 }; i < 6; i++) {
+			this->Diffuse[i - 3] = input_pose[i];
+		}
+		for (int i{ 6 }; i < 9; i++) {
+			this->Specular[i - 6] = input_pose[i];
+		}
+		this->strength = input_pose[9];
+		return;
+	}
 };
 class SunLight : public Light {
 public:
@@ -47,6 +76,7 @@ public:
 	glm::vec3 Specular = glm::vec3(0.0f);
 	Model* display = new Model("models/Lights/SunLight.obj");
 
+	SunLight() {}
 	SunLight(glm::vec3 dir, glm::vec3 diff, glm::vec3 spec, string na) {
 		Direction = dir;
 		Diffuse = glm::normalize(diff);
@@ -62,12 +92,43 @@ public:
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, Position);
 		model = glm::rotate(model, angle, axis);
-
 		model = glm::scale(model, glm::vec3(0.2f));
-
 
 		shader.Setmat4("model", model);
 		display->Draw(shader);
+	}
+	std::vector<float> get_location() {
+		std::vector<float> return_pose{};
+		for (int i{}; i < 3; i++) {
+			return_pose.push_back(this->Position[i]);
+		}
+		for (int i{ 3 }; i < 6; i++) {
+			return_pose.push_back(this->Direction[i - 3]);
+		}
+		for (int i{ 6 }; i < 9; i++) {
+			return_pose.push_back(this->Diffuse[i - 6]);
+		}
+		for (int i{ 9 }; i < 12; i++) {
+			return_pose.push_back(this->Specular[i - 9]);
+		}
+		return_pose.push_back(this->strength);
+		return return_pose;
+	}
+	void set_location(std::vector<float>& input_pose) {
+		for (int i{}; i < 3; i++) {
+			this->Position[i] = input_pose[i];
+		}
+		for (int i{3}; i < 6; i++) {
+			this->Direction[i - 3] = input_pose[i];
+		}
+		for (int i{ 6 }; i < 9; i++) {
+			this->Diffuse[i - 6] = input_pose[i];
+		}
+		for (int i{ 9 }; i < 12; i++) {
+			this->Specular[i - 9] = input_pose[i];
+		}
+		this->strength = input_pose[12];
+		return;
 	}
 };
 class ConeLight : public Light {
@@ -79,6 +140,8 @@ public:
 	glm::vec3 Direction = glm::vec3(0.0f);
 	float Cutoff;
 	Model* display = new Model("models/Lights/ConeLight.obj");
+
+	ConeLight() {}
 	ConeLight(glm::vec3 pos, glm::vec3 dir, float cutoff, glm::vec3 diff, glm::vec3 spec, string na) {
 		Direction = dir;
 		Diffuse = glm::normalize(diff) ;
@@ -100,6 +163,41 @@ public:
 		model = glm::scale(model, glm::vec3(0.2f));
 		shader.Setmat4("model", model);
 		display->Draw(shader);
+	}
+	std::vector<float> get_location() {
+		std::vector<float> return_pose{};
+		for (int i{}; i < 3; i++) {
+			return_pose.push_back(this->Position[i]);
+		}
+		for (int i{ 3 }; i < 6; i++) {
+			return_pose.push_back(this->Direction[i - 3]);
+		}
+		for (int i{ 6 }; i < 9; i++) {
+			return_pose.push_back(this->Diffuse[i - 6]);
+		}
+		for (int i{ 9 }; i < 12; i++) {
+			return_pose.push_back(this->Specular[i - 9]);
+		}
+		return_pose.push_back(this->Cutoff);
+		return_pose.push_back(this->strength);
+		return return_pose;
+	}
+	void set_location(std::vector<float>& input_pose) {
+		for (int i{}; i < 3; i++) {
+			this->Position[i] = input_pose[i];
+		}
+		for (int i{ 3 }; i < 6; i++) {
+			this->Direction[i - 3] = input_pose[i];
+		}
+		for (int i{ 6 }; i < 9; i++) {
+			this->Diffuse[i - 6] = input_pose[i];
+		}
+		for (int i{ 9 }; i < 12; i++) {
+			this->Specular[i - 9] = input_pose[i];
+		}
+		this->Cutoff = input_pose[12];
+		this->strength = input_pose[13];
+		return;
 	}
 };
 
@@ -126,31 +224,31 @@ void ApplyConeToShader(Shader& shader, ConeLight* light, int index) {
 }
 
 void PassPointsToShader(Shader& shader, vector<PointLight*> lights) {
+	shader.Set1i("pointCount", lights.size());
 	if (lights.empty()) {
 		return;
 	}
 	for (int i = 0; i < lights.size(); i++) {
 		ApplyPointToShader(shader, lights[i], i);
 	}
-	shader.Set1i("pointCount", lights.size());
 }
 void PassSunsToShader(Shader& shader, vector<SunLight*> lights) {
+	shader.Set1i("sunCount", lights.size());
 	if (lights.empty()) {
 		return;
 	}
 	for (int i = 0; i < lights.size(); i++) {
 		ApplySunToShader(shader, lights[i], i);
 	}
-	shader.Set1i("sunCount", lights.size());
 }
 void PassConesToShader(Shader& shader, vector<ConeLight*> lights) {
+	shader.Set1i("coneCount", lights.size());
 	if (lights.empty()) {
 		return;
 	}
 	for (int i = 0; i < lights.size(); i++) {
 		ApplyConeToShader(shader, lights[i], i);
 	}
-	shader.Set1i("coneCount", lights.size());
 }
 
 void RenderLights(Shader& shader, vector<PointLight*> points = {}, vector<SunLight*> suns = {}, vector<ConeLight*> cones = {}) {
@@ -170,5 +268,6 @@ void RenderLights(Shader& shader, vector<PointLight*> points = {}, vector<SunLig
 		}
 	}
 }
+
 
 #endif
