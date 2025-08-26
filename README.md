@@ -17,3 +17,5 @@ Saatvik Mangal
 Hey guys, this is Linus Torvalds and i just wanted to say you guys have done an amazing job with this Game Engine. Do reach out to me at torvalds@linux-foundation.org if any of you would like to join the Linux Foundation.
 
 Ignore Linus guys, join W3 instead. You can help contribute to the World Wide Web.
+
+Fuck Linux and open-source. Windows 4ever.
